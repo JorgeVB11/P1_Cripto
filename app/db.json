@@ -1,0 +1,24 @@
+[
+  {
+    "telf": 111111111,
+    "password": "prueba",
+    "data": {
+      "Google": "contrasena",
+      "Instagram": "contrasena2",
+      "tiktok": "2"
+    }
+  },
+  {
+    "telf": 222222222,
+    "password": "contrassssena",
+    "data": {
+      "Google": "contrasena",
+      "Instagram": "contrasen"
+    }
+  },
+  {
+    "telf": 333333333,
+    "password": "contrasena3",
+    "data": {}
+  }
+]
