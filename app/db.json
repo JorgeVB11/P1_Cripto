@@ -20,5 +20,23 @@
     "telf": 333333333,
     "password": "contrasena3",
     "data": {}
+  },
+  {
+    "telf": 333333333,
+    "password": "contrase\u00f1a3",
+    "data": {}
+  },
+  {
+    "telf": "644279211",
+    "password": "silofono",
+    "data": {
+      "gru": "mivillanofavorito",
+      "google": "tonto"
+    }
+  },
+  {
+    "telf": "544",
+    "password": "reto",
+    "data": {}
   }
 ]
