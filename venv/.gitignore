@@ -1,0 +1,13 @@
+# .gitignore
+
+# Excluir el directorio del entorno virtual
+venv/
+
+# Excluir archivos pycache
+_pycache_/
+
+# Excluir archivos .pyc
+*.pyc
+
+# Excluir archivos de configuración de PyCharm
+.idea/
