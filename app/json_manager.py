@@ -55,6 +55,8 @@ class JsonManager:
         new_account = {"telf": phone,
                        "password": password,
                        "data": {}}
+        self._account = new_account
+        self._current_user = phone
         self._data_list.append(new_account)
 
     def add_password(self, web, password):

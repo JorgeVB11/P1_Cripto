@@ -4,7 +4,7 @@
 venv/
 
 # Excluir archivos pycache
-__pycache__/
+_pycache_/
 
 # Excluir archivos .pyc
 *.pyc
