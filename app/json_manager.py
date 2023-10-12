@@ -1,6 +1,6 @@
 import json
 from json_exception import JsonException
-
+from json_manager_comprobaciones import JsonManagerComprobacion
 
 class JsonManager:
     def __init__(self, name):
@@ -52,6 +52,8 @@ class JsonManager:
 
     def add_account(self, phone, password):
         """Añadir una cuenta al data_list"""
+        phone = JsonManagerComprobacion.check_phonenum(phone)
+        password = JsonManagerComprobacion.check_password(password)
         new_account = {"telf": phone,
                        "password": password,
                        "data": {}}
