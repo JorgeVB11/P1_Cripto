@@ -48,7 +48,7 @@ class JsonManager:
         """Método para devolver una contraseña guardada en la cuenta"""
         if web in self._account["data"]:
             return self._account["data"][web]
-        return False
+        return -1
 
     def add_account(self, phone, password):
         """Añadir una cuenta al data_list"""
@@ -64,8 +64,8 @@ class JsonManager:
         for user in self._data_list:
             if user["telf"] == self._current_user:
                 user["data"][web] = password
-                return True
-        return False
+                return 0
+        return -1
 
     def change_password(self, web, new_password):
         """Cambiar una contraseña"""
@@ -76,3 +76,14 @@ class JsonManager:
                     return True
                 return -1  # Código de error si la web no esta registrada en las contraseñas del usuario
             return -2  # Código de error si el usuario no se encuentra
+
+    def all_webs(self):
+        """Método para devolver todas las webs registradas en un usuario"""
+        return self._account["data"].keys()
+
+    def rmv_password(self, web):
+        """Método para eliminar una contraseña"""
+        if web in self._account["data"]:
+            del self._account["data"][web]
+            return 0
+        return -1
