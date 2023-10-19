@@ -1,4 +1,5 @@
 from json_manager import JsonManager
+from json_manager_comprobaciones import JsonManagerComprobacion
 import getpass
 
 
@@ -9,30 +10,36 @@ class Menu:
         self.type = 'inicial'  # inicial/principal
 
     @staticmethod
-    def menu_inicial(self):
+    def menu_inicial():
         """"Método para registrarse o iniciar sesión"""
         eleccion = input("Bienvenido. ¿Quieres Registrarte (R) o iniciar Sesión (S)?: \n")
         while eleccion.lower() not in ['r', 's']:
-            eleccion = input("Por favor, teclea 'R' para registrarte, 'S' para iniciar sesión o 'C' para cerrar: \n")
+            eleccion = input("Por favor, teclea 'R' para registrarte o 'S' para iniciar sesión:\n")
         return eleccion
 
     @staticmethod
-    def menu_principal(self):
+    def menu_principal():
         """Método para elegir un servicio"""
-        eleccion = input("¿Deseas ver una contraseña (1), verlas toda las webs registradas (2), añadir una contraseña "
+        eleccion = input("¿Deseas ver una contraseña (1), ver toda las webs registradas (2), añadir una contraseña "
                          "(3), cambiar una contraseña (4), eliminar una contraseña (5) o  guardar y salir (6)?\n")
         int(eleccion)
-        while eleccion not in [1, 2, 3, 4, 5, 6]:
-            eleccion = input("Por favor, teclea un comando válido")
+        while eleccion not in ['1', '2', '3', '4', '5', '6']:
+            eleccion = input("Por favor, teclea un comando válido\n")
+        return eleccion
 
     def register(self):
         """Registrar nuevo usuario"""
         usuario = input("¿Cuál es tu telf?: \n")
+        while JsonManagerComprobacion.check_phonenum(usuario) == -1:
+            usuario = input("Introduzca un número de teléfono válido (9 dígitos): \n")
         if self._db.find_user(usuario):
             print("Este usuario ya existe, volviendo al menú anterior\n")
             return -1
 
         password = input("¿Cuál es tu contraseña?: \n")
+        while JsonManagerComprobacion.check_password(password) == -1:
+            password = input("La contraseña debe tener al menos 6 caracteres y contener al menos:\n"
+                             "1 letra minúscula, 1 mayúscula, 1 caracter especial y 1 numero\n")
         self._db.add_account(usuario, password)
         self.type = 'principal'
         return 0
@@ -69,7 +76,7 @@ class Menu:
 
     def show_webs(self):
         """Método para mostrar las webs para las que el usuario tiene contraseña"""
-        webs = self._db.all_passwords()
+        webs = self._db.all_webs()
         if not webs:
             print("Ninguna web registrada. Volviendo al menú anterior...\n")
             return -1

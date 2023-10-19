@@ -1,6 +1,5 @@
 import json
 from json_exception import JsonException
-from json_manager_comprobaciones import JsonManagerComprobacion
 
 
 class JsonManager:
@@ -8,7 +7,7 @@ class JsonManager:
         self._json_file_name = name
         self._current_user = ""
         self._data_list = []
-        self._account = []
+        self._account = {}
 
     def load_json(self):
         """This method loads the json file into the data list"""
@@ -41,7 +40,7 @@ class JsonManager:
 
     def check_password(self, password):
         """Método para comparar una contraseña con la de la cuenta del usuario"""
-        if password == self._account["password"]:
+        if password == self._account[password]:
             return True
         return False
 
@@ -53,8 +52,6 @@ class JsonManager:
 
     def add_account(self, phone, password):
         """Añadir una cuenta al data_list"""
-        phone = JsonManagerComprobacion.check_phonenum(phone)
-        password = JsonManagerComprobacion.check_password(password)
         new_account = {"telf": phone,
                        "password": password,
                        "data": {}}
@@ -72,6 +69,7 @@ class JsonManager:
 
     def change_password(self, web, new_password):
         """Cambiar una contraseña"""
+        print(self._current_user)
         for user in self._data_list:
             if user["telf"] == self._current_user:
                 if web in user["data"]:
@@ -82,7 +80,7 @@ class JsonManager:
 
     def all_webs(self):
         """Método para devolver todas las webs registradas en un usuario"""
-        return self._account["data"].keys()
+        return list(self._account["data"].keys())
 
     def rmv_password(self, web):
         """Método para eliminar una contraseña"""
