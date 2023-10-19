@@ -2,6 +2,7 @@ import json
 from json_exception import JsonException
 from json_manager_comprobaciones import JsonManagerComprobacion
 
+
 class JsonManager:
     def __init__(self, name):
         self._json_file_name = name

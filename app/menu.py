@@ -8,6 +8,7 @@ class Menu:
         self._db.load_json()
         self.type = 'inicial'  # inicial/principal
 
+    @staticmethod
     def menu_inicial(self):
         """"Método para registrarse o iniciar sesión"""
         eleccion = input("Bienvenido. ¿Quieres Registrarte (R) o iniciar Sesión (S)?: \n")
@@ -15,6 +16,7 @@ class Menu:
             eleccion = input("Por favor, teclea 'R' para registrarte, 'S' para iniciar sesión o 'C' para cerrar: \n")
         return eleccion
 
+    @staticmethod
     def menu_principal(self):
         """Método para elegir un servicio"""
         eleccion = input("¿Deseas ver una contraseña (1), verlas toda las webs registradas (2), añadir una contraseña "
