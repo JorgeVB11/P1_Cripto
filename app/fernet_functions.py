@@ -1,4 +1,6 @@
 from cryptography.fernet import Fernet
+
+
 class FernetFunctions:
     """Funciones que sirven para encriptar y desencriptar"""
     def encriptar(self, word):
