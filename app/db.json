@@ -38,5 +38,12 @@
     "telf": "544",
     "password": "reto",
     "data": {}
+  },
+  {
+    "telf": "123456789",
+    "password": "pruEba-1",
+    "data": {
+      "googlwe": "pruebbbbba"
+    }
   }
 ]

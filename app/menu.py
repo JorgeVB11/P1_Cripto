@@ -1,6 +1,5 @@
 from json_manager import JsonManager
 from json_manager_comprobaciones import JsonManagerComprobacion
-import getpass
 
 
 class Menu:
@@ -35,6 +34,7 @@ class Menu:
         if self._db.find_user(usuario):
             print("Este usuario ya existe, volviendo al menú anterior\n")
             return -1
+        print("Usuario registrtado correctamente.\n")
 
         password = input("¿Cuál es tu contraseña?: \n")
         while JsonManagerComprobacion.check_password(password) == -1:
@@ -50,10 +50,9 @@ class Menu:
         if not self._db.find_user(usuario):
             print("Usuario no encontrado. Volviendo al menú anterior...\n")
             return -1
-
         intentos = 3
         while intentos > 0:
-            password = getpass.getpass("¿Cuál es tu contraseña?: \n")
+            password = input("¿Cuál es tu contraseña?:\n")
             if not self._db.check_password(password):
                 intentos -= 1
                 print("Contraseña incorrecta. Tienes", intentos, " intentos\n")
@@ -86,29 +85,41 @@ class Menu:
     def add_password(self):
         """Método para añadir una contraseña"""
         web = input("Introduzca la web:\n")
+        if self._db.password_query(web) != -1:
+            print("Esta web ya ha sido registrada. Volviendo al menú anterior...\n")
+            return -1
         password = input("Introduzca la contraseña:\n")
         if self._db.add_password(web, password) == 0:
             print("Contraseña añadida correctamente.\n")
             return 0
-        print("Web no registrada. Volviendo al menú anterior...\n")
-        return -1
+        print("Error guardando la contraseña. Volviendo al menú anterior...\n")
+        return -2
 
     def change_password(self):
         """Método para cambiar una contraseña"""
-        web = input("Introduzca la web:\n")
-        password = input("Introduzca la nueva contraseña:\n")
-        result = self._db.change_password(web, password)
-        if result == -1:
-            print("Web no registrada. Volviendo al menu anterior...\n")
+        # Comrobar si hay alguna web registrada
+        webs = self._db.all_webs()
+        if not webs:
+            print("Ninguna web registrada. Volviendo al menú anterior...\n")
             return -1
-        if result == -2:
-            print("Error cambiando la web. Volviendo al menu anterior...\n")
+        web = input("Introduzca la web:\n")
+        if self._db.password_query(web) == -1:
+            print("Esta web no ha sido registrada. Volviendo al menú anterior...\n")
             return -2
-        print("Contraseña cambiada correctamente.\n")
-        return 0
+        password = input("Introduzca la nueva contraseña:\n")
+        if self._db.add_password(web, password) == 0:
+            print("Contraseña cambiada correctamente.\n")
+            return 0
+        print("Error cambiando la contraseña. Volviendo al menú anterior...\n")
+        return -3
 
     def remove_password(self):
         """Método para eliminar una contraseña"""
+        # Comrobar si hay alguna web registrada
+        webs = self._db.all_webs()
+        if not webs:
+            print("Ninguna web registrada. Volviendo al menú anterior...\n")
+            return -1
         web = input("Introduzca la web:\n")
         result = self._db.rmv_password(web)
         if result == -1:
@@ -119,5 +130,5 @@ class Menu:
     def exit_sesion(self):
         """Método para volver al menú de inicio y guardar los cambios"""
         self.type = 'inicial'
-        self._db.load_json()
+        self._db.save_data()
         return 0

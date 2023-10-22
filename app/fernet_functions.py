@@ -18,6 +18,3 @@ class FernetFunctions:
         f = Fernet(key)
         message = f.decrypt(token)
         return message
-
-# deberiamos separar la funcion de encriptar en dos para que la otra devuelva la llave y sea mas facil guardarla?
-# como guardamos la llave? hayq ue guardarla?

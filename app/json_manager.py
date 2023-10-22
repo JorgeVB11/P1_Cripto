@@ -40,7 +40,7 @@ class JsonManager:
 
     def check_password(self, password):
         """Método para comparar una contraseña con la de la cuenta del usuario"""
-        if password == self._account[password]:
+        if password == self._account["password"]:
             return True
         return False
 
@@ -66,17 +66,6 @@ class JsonManager:
                 user["data"][web] = password
                 return 0
         return -1
-
-    def change_password(self, web, new_password):
-        """Cambiar una contraseña"""
-        print(self._current_user)
-        for user in self._data_list:
-            if user["telf"] == self._current_user:
-                if web in user["data"]:
-                    user["data"][web] = new_password
-                    return True
-                return -1  # Código de error si la web no esta registrada en las contraseñas del usuario
-            return -2  # Código de error si el usuario no se encuentra
 
     def all_webs(self):
         """Método para devolver todas las webs registradas en un usuario"""
