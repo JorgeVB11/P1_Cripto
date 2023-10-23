@@ -1,5 +1,6 @@
 import json
 from json_exception import JsonException
+from criptografia import Criptografia
 
 
 class JsonManager:
@@ -8,6 +9,8 @@ class JsonManager:
         self._current_user = ""
         self._data_list = []
         self._account = {}
+        # Objeto que ejecuta métodos criptográficos
+        self._cripto = Criptografia()
 
     def load_json(self):
         """This method loads the json file into the data list"""
@@ -40,30 +43,33 @@ class JsonManager:
 
     def check_password(self, password):
         """Método para comparar una contraseña con la de la cuenta del usuario"""
-        if password == self._account["password"]:
+        if self._cripto.compare_hash(password, self._account["password"]):
             return True
         return False
 
     def password_query(self, web):
-        """Método para devolver una contraseña guardada en la cuenta"""
+        """Método para devolver una contraseña cifrada guardada en la cuenta"""
         if web in self._account["data"]:
-            return self._account["data"][web]
+            return self._account["data"][web]["ciphertext"]
         return -1
 
-    def add_account(self, phone, password):
+    def add_account(self, phone, password, salt):
         """Añadir una cuenta al data_list"""
         new_account = {"telf": phone,
                        "password": password,
+                       "salt": salt,
                        "data": {}}
         self._account = new_account
         self._current_user = phone
         self._data_list.append(new_account)
 
-    def add_password(self, web, password):
+    def add_password(self, web, password, tag, nonce):
         """Añadir una nueva contraseña a una cuenta"""
         for user in self._data_list:
             if user["telf"] == self._current_user:
-                user["data"][web] = password
+                user["data"][web]["ciphertext"] = password
+                user["data"][web]["tag"] = tag
+                user["data"][web]["nonce"] = nonce
                 return 0
         return -1
 

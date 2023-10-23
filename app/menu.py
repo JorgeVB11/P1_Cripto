@@ -34,13 +34,13 @@ class Menu:
         if self._db.find_user(usuario):
             print("Este usuario ya existe, volviendo al menú anterior\n")
             return -1
-        print("Usuario registrtado correctamente.\n")
 
         password = input("¿Cuál es tu contraseña?: \n")
         while JsonManagerComprobacion.check_password(password) == -1:
             password = input("La contraseña debe tener al menos 6 caracteres y contener al menos:\n"
                              "1 letra minúscula, 1 mayúscula, 1 caracter especial y 1 numero\n")
         self._db.add_account(usuario, password)
+        print("Usuario registrtado correctamente.\n")
         self.type = 'principal'
         return 0
 

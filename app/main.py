@@ -36,17 +36,21 @@ while program_open:
 """
 
 TODO: 
-    -meter criptografia
-    - hacer que al meter una contraseña no se vea el texto --> no se puede creo
-
-REQUISITOS:
-    -cifrado simétrico/asimetrico: al guardar contrasñas, hay que printear el resultado del cifrado, la longitud del
-    cifrado y el algoritmo usado
-    -Generación/verificación de etiquetas de autenticación de mensajes:  usar HMAC para garantizar que los datos no se 
-    han alterado desde la última vez que se guardaron. Al guardar los datos, genera un HMAC y almacénalo junto con los 
-    datos. Cada vez que cargues los datos, verifica el HMAC para asegurarte de que nadie ha modificado el archivo.
-    -Generación/verificación de firma digital: permitir que los usuarios importen/exporten datos, firmar digitalmente 
-    estos paquetes
-    -Autenticación de las claves públicas mediante certificados (despliegue de PKI): importar un perfil, implementar un 
-    sistema donde estos datos estén firmados con una clave privada y verificados con una clave pública
+    - Modificar base de datos para meter: 
+        {
+    "telf": "111111111",
+    "password": "prueba", <- esto va hasheado
+    "salt": "", <- salt para derivar la contraseña
+    "data": {
+      "Web": {
+        "ciphertext": "contraseña cifrada",
+        "tag": "tag para verificar datos",
+        "nonce": "nonce para desencriptar"
+      }
+    }
+  }
+    
+    -Modificar menu.py para adaptarse a la nueva base de datos y a la encriptacion (el json manager ya esta actualizado)
+    - en el menu hay que codificar y decodificar, el json manager solo tiene de criptografia el comprobar que la c
+    contraseña coincide con la hasheada, lo he adaptado a la nueva base de datos
 """
