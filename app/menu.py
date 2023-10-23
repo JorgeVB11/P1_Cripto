@@ -14,7 +14,7 @@ class Menu:
         eleccion = input("Bienvenido. ¿Quieres Registrarte (R) o iniciar Sesión (S)?: \n")
         while eleccion.lower() not in ['r', 's']:
             eleccion = input("Por favor, teclea 'R' para registrarte o 'S' para iniciar sesión:\n")
-        return eleccion
+        return eleccion.lower()
 
     @staticmethod
     def menu_principal():
@@ -31,7 +31,7 @@ class Menu:
         usuario = input("¿Cuál es tu telf?: \n")
         while JsonManagerComprobacion.check_phonenum(usuario) == -1:
             usuario = input("Introduzca un número de teléfono válido (9 dígitos): \n")
-        if self._db.find_user(usuario):
+        if self._db.find_user(usuario)==True:
             print("Este usuario ya existe, volviendo al menú anterior\n")
             return -1
 

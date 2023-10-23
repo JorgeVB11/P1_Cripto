@@ -1,6 +1,6 @@
+"""Main"""
 from menu import Menu
 from time import sleep
-
 menu = Menu()
 program_open = True
 
@@ -8,12 +8,13 @@ program_open = True
 while program_open:
     if menu.type == 'inicial':
         if menu.menu_inicial() == 'r':
-            if menu.register() == -1:
-                sleep(1.5)
+            while menu.register() == -1:
+                sleep(0.5)
                 continue
-        elif menu.login() == -1:
-            sleep(1.5)
-            continue
+        else:
+            while menu.login() == -1:
+                sleep(0.5)
+                continue
     sleep(1.5)
 
     eleccion = menu.menu_principal()
