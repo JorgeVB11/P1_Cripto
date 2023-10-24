@@ -78,9 +78,12 @@ class Menu:
                 return 0
         print("Volviendo al menú anterior...\n")
         return -1
-    def exit_system(self):
+
+    @staticmethod
+    def exit_system():
         print("Operaciones terminadas")
         return False
+
     def show_password(self):
         """Método para mostrar la contraseña de una web"""
         webs = self._db.all_webs()
@@ -91,7 +94,7 @@ class Menu:
         # Conseguimos toda la info relacionada con la contraseña
         ciphertext, tag, nonce = self._db.password_query(web)
         # En caso de que la web no esté reguistrada con una contraseña
-        if not ciphertext and not tag and not nonce:
+        if (ciphertext == -1) and (tag == -1) and (nonce == -1):
             print("No tienes una contraseña para esta web. Volviendo al menú principal...\n")
             return -1
         # Pasamos los parametros a la función de desencriptado en bytes

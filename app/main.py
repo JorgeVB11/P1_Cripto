@@ -8,19 +8,19 @@ conseguido = False
 while program_open:
     if menu.type == 'inicial':
         while not conseguido:
-            operacion= menu.menu_inicial()
+            operacion = menu.menu_inicial()
             if operacion == 'r':
                 if menu.register() == 0:
-                    conseguido=True
+                    conseguido = True
                     sleep(0.5)
                     continue
             elif operacion == 's':
                 if menu.login() == 0:
-                    conseguido=True
+                    conseguido = True
                     sleep(0.5)
                     continue
             else:
-                conseguido=True
+                conseguido = True
                 program_open = menu.exit_system()
     sleep(1.5)
     if program_open:
@@ -37,5 +37,5 @@ while program_open:
             case '5':
                 menu.remove_password()
             case '6':
-                conseguido=menu.exit_sesion()
+                conseguido = menu.exit_sesion()
         print("\n")
