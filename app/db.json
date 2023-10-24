@@ -1,41 +1,38 @@
 [
   {
-    "telf": "111111111",
-    "password": "prueba",
+    "telf": "999999999",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$cgoP7Ap37xwbpQMpshTZrg$bkzx5ugFLhu7XLb8uUx3AGPewvGIptDlojrDop09wP4",
+    "salt": "wre7DXcKLadlkvznN/Sw5w==",
     "data": {
-      "Google": "contrasena",
-      "Instagram": "contrasena2",
-      "tiktok": "2"
+      "google": {
+        "ciphertext": "2CjnjJAX",
+        "tag": "Cw2puw1Hk7n1+XSJiInNWA==",
+        "nonce": "JkyF5iVwjlqkVlRFUrlbHQ=="
+      }
     }
-  },
-  {
-    "telf": "222222222",
-    "password": "contrassssena",
-    "data": {
-      "Google": "contrasena",
-      "Instagram": "contrasen"
-    }
-  },
-  {
-    "telf": "333333333",
-    "password": "contrasena3",
-    "data": {}
-  },
-  {
-    "telf": "333333333",
-    "password": "contrase\u00f1a3",
-    "data": {}
-  },
-  {
-    "telf": "544",
-    "password": "reto",
-    "data": {}
   },
   {
     "telf": "123456789",
-    "password": "pruEba-1",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$ZgJPN4bTlt1aAfModiMqPw$4JE9ugAZfyJ+2kJfMUESuzgp7i9r7QoX49qXcwbKh/Q",
+    "salt": "PrU2GofxaJyLMYt9AQ6V1w==",
     "data": {
-      "googlwe": "pruebbbbba"
+      "google": {
+        "ciphertext": "9E0=",
+        "tag": "Z4fF6sjhogaelNSJ3Sfubg==",
+        "nonce": "uf+lf1s7V1SZBM399GuAdQ=="
+      }
+    }
+  },
+  {
+    "telf": "111111111",
+    "password": "$argon2id$v=19$m=65536,t=3,p=4$K4hs6HNnub7jUe2UXeHVwQ$FUOLMCBKIUTMl+/dzEX6QbHq1D+pwZYeAi3ul4UAdd8",
+    "salt": "018yYqUI6jrmL491di/O3w==",
+    "data": {
+      "google": {
+        "ciphertext": "VX4=",
+        "tag": "ftjKqobHd7LrjTIl9E0oLA==",
+        "nonce": "Z8tIPwN4pUikQlipk11G9w=="
+      }
     }
   }
 ]

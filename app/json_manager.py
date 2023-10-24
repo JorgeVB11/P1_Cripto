@@ -47,11 +47,16 @@ class JsonManager:
             return True
         return False
 
+    def get_salt(self):
+        """Método para conseguir el salt de una cuenta"""
+        return self._account["salt"]
+
     def password_query(self, web):
         """Método para devolver una contraseña cifrada guardada en la cuenta"""
         if web in self._account["data"]:
-            return self._account["data"][web]["ciphertext"]
-        return -1
+            return self._account["data"][web]["ciphertext"], self._account["data"][web]["tag"], \
+                   self._account["data"][web]["nonce"]
+        return -1, -1, -1
 
     def add_account(self, phone, password, salt):
         """Añadir una cuenta al data_list"""
@@ -67,9 +72,7 @@ class JsonManager:
         """Añadir una nueva contraseña a una cuenta"""
         for user in self._data_list:
             if user["telf"] == self._current_user:
-                user["data"][web]["ciphertext"] = password
-                user["data"][web]["tag"] = tag
-                user["data"][web]["nonce"] = nonce
+                user["data"][web] = {"ciphertext": password, "tag": tag, "nonce": nonce}
                 return 0
         return -1
 

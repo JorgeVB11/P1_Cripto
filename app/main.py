@@ -32,7 +32,6 @@ while program_open:
         case '6':
             menu.exit_sesion()
     print("\n")
-    sleep(1.5)
 
 """
 
