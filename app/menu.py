@@ -16,8 +16,8 @@ class Menu:
     @staticmethod
     def menu_inicial():
         """"Método para registrarse o iniciar sesión"""
-        eleccion = input("Bienvenido. ¿Quieres Registrarte (R) o iniciar Sesión (S)?: \n")
-        while eleccion.lower() not in ['r', 's']:
+        eleccion = input("Bienvenido. ¿Quieres Registrarte (R), iniciar Sesión (S) o terminar Operaciones(T)?: \n")
+        while eleccion.lower() not in ['r', 's', 't']:
             eleccion = input("Por favor, teclea 'R' para registrarte o 'S' para iniciar sesión:\n")
         return eleccion.lower()
 
@@ -78,7 +78,9 @@ class Menu:
                 return 0
         print("Volviendo al menú anterior...\n")
         return -1
-
+    def exit_system(self):
+        print("Operaciones terminadas")
+        return False
     def show_password(self):
         """Método para mostrar la contraseña de una web"""
         webs = self._db.all_webs()

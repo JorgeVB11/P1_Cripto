@@ -7,31 +7,34 @@ program_open = True
 
 while program_open:
     if menu.type == 'inicial':
-        if menu.menu_inicial() == 'r':
+        operacion= menu.menu_inicial()
+        if operacion == 'r':
             while menu.register() == -1:
                 sleep(0.5)
                 continue
-        else:
+        elif operacion == 's':
             while menu.login() == -1:
                 sleep(0.5)
                 continue
+        else:
+            program_open = menu.exit_system()
     sleep(1.5)
-
-    eleccion = menu.menu_principal()
-    match eleccion:
-        case '1':
-            menu.show_password()
-        case '2':
-            menu.show_webs()
-        case '3':
-            menu.add_password()
-        case '4':
-            menu.change_password()
-        case '5':
-            menu.remove_password()
-        case '6':
-            menu.exit_sesion()
-    print("\n")
+    if program_open:
+        eleccion = menu.menu_principal()
+        match eleccion:
+            case '1':
+                menu.show_password()
+            case '2':
+                menu.show_webs()
+            case '3':
+                menu.add_password()
+            case '4':
+                menu.change_password()
+            case '5':
+                menu.remove_password()
+            case '6':
+                menu.exit_sesion()
+        print("\n")
 
 """
 
