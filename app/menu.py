@@ -81,6 +81,10 @@ class Menu:
 
     def show_password(self):
         """Método para mostrar la contraseña de una web"""
+        webs = self._db.all_webs()
+        if not webs:
+            print("Ninguna web registrada. Volviendo al menú anterior...\n")
+            return -1
         web = input("Introduzca la web:\n")
         # Conseguimos toda la info relacionada con la contraseña
         ciphertext, tag, nonce = self._db.password_query(web)
@@ -157,6 +161,7 @@ class Menu:
         if result == -1:
             print("La web no está registrada. Volviendo al menú anterior...\n")
             return -1
+        print("Se ha eliminado la web.\n")
         return 0
 
     def exit_sesion(self):
