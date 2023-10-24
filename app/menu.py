@@ -170,4 +170,4 @@ class Menu:
         """Método para volver al menú de inicio y guardar los cambios"""
         self.type = 'inicial'
         self._db.save_data()
-        return 0
+        return False
