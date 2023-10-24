@@ -39,25 +39,3 @@ while program_open:
             case '6':
                 conseguido=menu.exit_sesion()
         print("\n")
-
-"""
-
-TODO: 
-    - Modificar base de datos para meter: 
-        {
-    "telf": "111111111",
-    "password": "prueba", <- esto va hasheado
-    "salt": "", <- salt para derivar la contraseña
-    "data": {
-      "Web": {
-        "ciphertext": "contraseña cifrada",
-        "tag": "tag para verificar datos",
-        "nonce": "nonce para desencriptar"
-      }
-    }
-  }
-    
-    -Modificar menu.py para adaptarse a la nueva base de datos y a la encriptacion (el json manager ya esta actualizado)
-    - en el menu hay que codificar y decodificar, el json manager solo tiene de criptografia el comprobar que la c
-    contraseña coincide con la hasheada, lo he adaptado a la nueva base de datos
-"""
