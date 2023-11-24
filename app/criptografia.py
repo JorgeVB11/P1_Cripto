@@ -1,5 +1,8 @@
 import argon2
 import base64
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
 from Crypto.Cipher import AES
 
 
@@ -7,6 +10,24 @@ class Criptografia:
     """Funciones que sirven para manejar la encriptación y desencriptación"""
     def __init__(self):
         self._ph = argon2.PasswordHasher()
+
+    def sign_digitally(self, hashed_password, private_key):
+        """Vamos a firmar digitalmente la contraseña que ha sido hasheada previamente y"""
+        sign = private_key.sign(hashed_password.encode(),
+                                 padding.PSS(padding.MGF1(hashes.SHA256()),
+                                             padding.PSS.MAX_LENGTH),hashes.SHA256())
+        return sign
+
+    def verify_sign(self, hashed_password, sign, public_key):
+        """Método para verificar la firma"""
+        try:
+            public_key.verify(sign, hashed_password.encode(),
+                              padding.PSS(padding.MGF1(hashes.SHA256()), padding.PSS.MAX_LENGTH),
+                              hashes.SHA256())
+            return True
+        except InvalidSignature:
+            return False
+
 
     def hash_password(self, password):
         """Método para hashear la contraseña"""
