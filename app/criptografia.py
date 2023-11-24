@@ -6,40 +6,55 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from Crypto.Cipher import AES
 
 
+""" TODO: -funcion crear certificado. -> devuelve el certificado al user para que pueda iniciar sesion con el
+        - funcion para validar el certificado para poder iniciar sesion
+        - Los certificados ya estan firmados digitalmente, nos estamos quitando dos pajaros de un tiro
+        - Guardamos en nuestra base de datos los certificados y la clave orivada, los dos encriptados (lo que podemos 
+        hacer es pedir la contraseña primero, con ella derivamos la clave, y usamos esa clave para desencriptar el 
+        certificado y la clave)
+        - Al crear el certificado, le pedimos al user su nombre completo para poder meterlo dentro, y usamos su número 
+        de teléfono como id unico que necesitamos para crear el certificado
+        -Tengo que mirar bien lo de autofirmar el certificado para ser nosotros la entidad que emite certificados:
+        lo he mirado y tenemos quqe generar nuestro certificado y firmarlo con la propia clave privada con la qu e la 
+        creas. esa clave privada es la que vamos a usar para firmar los certificados que creemos, asi que podriamos 
+        guardar nuestro certificado como un archivo en la app, y acceder a el cuando usemos certificados. PROBLEMA: hay 
+        que cifrarlo, podiamos meterlo en un json aparte y cifrarlo de alguna forma
+    
+"""
+
 class Criptografia:
     """Funciones que sirven para manejar la encriptación y desencriptación"""
     def __init__(self):
         self._ph = argon2.PasswordHasher()
 
-    #Dudas:
-    #Qué vamos a usar de clave pública y qué de clave privada. Pq nosotros solo tenemos una clave no?
-    #A su vez he visto en un ejercicio que el certificado pasa N, que creo que es lo que se usaba para hacer el modulo en RSA
-    #Pero nosotros no hacemos RSA y por tanto no tenemos N, simplemente omitimos eso o cómo hacemos?
+    # Dudas:
+    # Qué vamos a usar de clave pública y qué de clave privada. Pq nosotros solo tenemos una clave no?
+    # A su vez he visto en un ejercicio que el certificado pasa N, que creo que es lo que se usaba para hacer el modulo
+    # en RSA
+    # Pero nosotros no hacemos RSA y por tanto no tenemos N, simplemente omitimos eso o cómo hacemos?
+    @staticmethod
     def sign_digitally(self, hashed_password, private_key):
         """Vamos a firmar digitalmente la contraseña que ha sido hasheada previamente y luego tb crear el certificado"""
-        sign = private_key.sign(hashed_password.encode(),
-                                 padding.PSS(padding.MGF1(hashes.SHA256()),
-                                             padding.PSS.MAX_LENGTH),hashes.SHA256())
+        sign = private_key.sign(hashed_password.encode(), padding.PSS(padding.MGF1(hashes.SHA256()),
+                                                                      padding.PSS.MAX_LENGTH), hashes.SHA256())
         return sign
 
+    @staticmethod
     def verify_sign(self, hashed_password, sign, public_key, certificate):
         """Método para verificar la firma y comprobar el certificado"""
         try:
-            public_key.verify(sign, hashed_password.encode(),
-                              padding.PSS(padding.MGF1(hashes.SHA256()), padding.PSS.MAX_LENGTH),
-                              hashes.SHA256())
-            #mi_certificado = self.check_certificate(certificate, sign)
-            #Verificar certificado a continuacion
+            public_key.verify(sign, hashed_password.encode(), padding.PSS(padding.MGF1(hashes.SHA256()),
+                                                                          padding.PSS.MAX_LENGTH), hashes.SHA256())
+            # mi_certificado = self.check_certificate(certificate, sign)
+            # Verificar certificado a continuacion
             return True
         except InvalidSignature:
             return False
 
     def check_certificate(self, certificate, sign):
-        #segun veo los certificados están compuestos por {(clave publica, N), Firma}
-        #Por tanto habría que verificar que recibimos eso
+        # segun veo los certificados están compuestos por {(clave publica, N), Firma}
+        # Por tanto habría que verificar que recibimos eso
         pass
-
-
 
     def hash_password(self, password):
         """Método para hashear la contraseña"""
@@ -63,8 +78,8 @@ class Criptografia:
         # Ahora obtenemos solo los bytes que conforman la clave (derived key es una cadena codificada que incluye más
         # elementos)
         derived_bytes_base64 = derived_key.split(b'$')[4]
-        padding = b'=' * (4 - (len(derived_bytes_base64) % 4))
-        key = base64.urlsafe_b64decode(derived_bytes_base64 + padding)
+        padding_clave = b'=' * (4 - (len(derived_bytes_base64) % 4))
+        key = base64.urlsafe_b64decode(derived_bytes_base64 + padding_clave)
         print("Contraseña derivada. Key creada: ", key, "\n")
         return key
 
