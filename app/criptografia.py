@@ -11,22 +11,34 @@ class Criptografia:
     def __init__(self):
         self._ph = argon2.PasswordHasher()
 
+    #Dudas:
+    #Qué vamos a usar de clave pública y qué de clave privada. Pq nosotros solo tenemos una clave no?
+    #A su vez he visto en un ejercicio que el certificado pasa N, que creo que es lo que se usaba para hacer el modulo en RSA
+    #Pero nosotros no hacemos RSA y por tanto no tenemos N, simplemente omitimos eso o cómo hacemos?
     def sign_digitally(self, hashed_password, private_key):
-        """Vamos a firmar digitalmente la contraseña que ha sido hasheada previamente y"""
+        """Vamos a firmar digitalmente la contraseña que ha sido hasheada previamente y luego tb crear el certificado"""
         sign = private_key.sign(hashed_password.encode(),
                                  padding.PSS(padding.MGF1(hashes.SHA256()),
                                              padding.PSS.MAX_LENGTH),hashes.SHA256())
         return sign
 
-    def verify_sign(self, hashed_password, sign, public_key):
-        """Método para verificar la firma"""
+    def verify_sign(self, hashed_password, sign, public_key, certificate):
+        """Método para verificar la firma y comprobar el certificado"""
         try:
             public_key.verify(sign, hashed_password.encode(),
                               padding.PSS(padding.MGF1(hashes.SHA256()), padding.PSS.MAX_LENGTH),
                               hashes.SHA256())
+            #mi_certificado = self.check_certificate(certificate, sign)
+            #Verificar certificado a continuacion
             return True
         except InvalidSignature:
             return False
+
+    def check_certificate(self, certificate, sign):
+        #segun veo los certificados están compuestos por {(clave publica, N), Firma}
+        #Por tanto habría que verificar que recibimos eso
+        pass
+
 
 
     def hash_password(self, password):
