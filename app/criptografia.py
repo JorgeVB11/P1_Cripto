@@ -1,12 +1,9 @@
 import argon2
 import base64
-import random
-from OpenSSL import crypto, SSL
+from OpenSSL import crypto
 from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import padding, rsa
-
-from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
 from Crypto.Cipher import AES
 
 
@@ -23,66 +20,57 @@ from Crypto.Cipher import AES
         creas. esa clave privada es la que vamos a usar para firmar los certificados que creemos, asi que podriamos 
         guardar nuestro certificado como un archivo en la app, y acceder a el cuando usemos certificados. PROBLEMA: hay 
         que cifrarlo, podiamos meterlo en un json aparte y cifrarlo de alguna forma
+        - funcion para pedir al user el path donde quieren guardar su certificado, y el nombre para el cert y clave
+        (los archivos). La funcion deveria juntar los nombres para pasarselos al de crear el cert
     
 """
+
 
 class Criptografia:
     """Funciones que sirven para manejar la encriptación y desencriptación"""
     def __init__(self):
         self._ph = argon2.PasswordHasher()
-    # Dudas:
-    # Qué vamos a usar de clave pública y qué de clave privada. Pq nosotros solo tenemos una clave no?
-    # A su vez he visto en un ejercicio que el certificado pasa N, que creo que es lo que se usaba para hacer el modulo
-    # en RSA
-    # Pero nosotros no hacemos RSA y por tanto no tenemos N, simplemente omitimos eso o cómo hacemos?
+
     @staticmethod
-    def sign_digitally(self, hashed_password, private_key):
-        """Vamos a firmar digitalmente la contraseña que ha sido hasheada previamente y luego tb crear el certificado"""
+    def sign_digitally(hashed_password, private_key):
+
         sign = private_key.sign(hashed_password.encode(), padding.PSS(padding.MGF1(hashes.SHA256()),
                                                                       padding.PSS.MAX_LENGTH), hashes.SHA256())
         return sign
 
     @staticmethod
-    def verify_sign(self, hashed_password, sign, public_key, certificate):
-        """Método para verificar la firma y comprobar el certificado"""
+    def verify_sign(hashed_password, sign, public_key):
+
         try:
             public_key.verify(sign, hashed_password.encode(), padding.PSS(padding.MGF1(hashes.SHA256()),
                                                                           padding.PSS.MAX_LENGTH), hashes.SHA256())
-            # mi_certificado = self.check_certificate(certificate, sign)
-            # Verificar certificado a continuacion
+
             return True
         except InvalidSignature:
             return False
-    def create_certificate(self, user, userkey):
-        private_key = crypto.PKey()
-        private_key.generate_key(crypto.TYPE_RSA, 2048)
 
-        # Crear un certificado autofirmado
-        certificate = crypto.X509()
-        certificate.get_subject().C = "ES"
-        certificate.get_subject().ST = "Comunidad de Madrid"
-        certificate.get_subject().L = "Pinto"
-        certificate.get_subject().O = "Mi organización"
-        certificate.get_subject().OU = "Mi unidad organizativa"
-        certificate.get_subject().CN = "localhost"
-        certificate.set_serial_number(1000)
-        certificate.gmtime_adj_notBefore(0)
-        certificate.gmtime_adj_notAfter(315360000)
-        certificate.set_issuer(certificate.get_subject())
-        certificate.set_pubkey(private_key)
-        certificate.sign(private_key, 'sha256')
-        # No estoy seguro si debo devolver la private_key o si esto hace que la deje desprotegida, lo hago para poder
-        # sacar la publica a partir de ella pq no llego a estar seguro si se puede usar, ya que he visto que primero
-        # se genera la privada y a partir de ella la publica, pero parece que al reves se raya.
-        pem = private_key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.BestAvailableEncryption(userkey)
-        )
-        with open("private_key.pem", "wb") as f:
-            #Guardamos clave privada
-            f.write(pem)
-        return certificate
+    @staticmethod
+    def generate_certificate(self, id_telf, name, priv_key_path, certificate_path):
+        # Generar una clave privada para el usuario
+        user_key = crypto.PKey()
+        user_key.generate_key(crypto.TYPE_RSA, 2048)
+        # Crear un certificado para el usuario
+        user_cert = crypto.X509()
+        user_cert.set_version(2)  # Usamos la versión 3
+        user_cert.set_serial_number(id_telf)
+        user_cert.get_subject().CN = name
+        user_cert.set_issuer()  # meter el issuer aqui
+        user_cert.gmtime_adj_notBefore(0)
+        user_cert.gmtime_adj_notAfter(365 * 24 * 60 * 60)  # Validez de 1 año
+        user_cert.set_pubkey(user_key)
+        # Firmar el certificado del usuario con la clave privada de la CA
+        nuestra_key = 0
+        user_cert.sign(nuestra_key, 'sha256')  # meter nuestra key aqui
+        # Exportar la clave privada y el certificado del usuario
+        with open(priv_key_path, "wb") as f:
+            f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, user_key))
+        with open(certificate_path, "wb") as f:
+            f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, user_cert))
 
     def check_certificate(self, certificate, sign):
         # segun veo los certificados están compuestos por {(clave publica, N), Firma}
