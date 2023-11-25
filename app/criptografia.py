@@ -1,11 +1,10 @@
 import argon2
 import base64
 import random
-from cryptography import x509
+from OpenSSL import crypto, SSL
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
-from datetime import datetime, timedelta
 
 from cryptography.hazmat.backends import default_backend
 from Crypto.Cipher import AES
@@ -54,28 +53,36 @@ class Criptografia:
             return True
         except InvalidSignature:
             return False
-    def create_certificate(self, user):
-        public_exponent = random.randint(1,100000)
-        #clave privada a partir de la cual tb se podrá sacar la publica
-        private_key = rsa.generate_private_key(public_exponent, key_size=2048)
-        # creamos certificado
-        certificate = (x509.CertificateBuilder()
-            .subject_name(x509.Name([
-                x509.NameAttribute(x509.NameOID.COMMON_NAME, str(user)),
-            ]))
-            .issuer_name(x509.Name([
-                x509.NameAttribute(x509.NameOID.COMMON_NAME, str(user)),
-            ]))
-            .serial_number(user)
-            .not_valid_before(datetime.utcnow())
-            .not_valid_after(datetime.utcnow() + timedelta(days=365))
-            .public_key(private_key.public_key())
-            .sign(private_key, hashes.SHA256()) #Se le puede añadir tb un backend para firmar, al no especificar se coge el que está por defecto
-        )
+    def create_certificate(self, user, userkey):
+        private_key = crypto.PKey()
+        private_key.generate_key(crypto.TYPE_RSA, 2048)
+
+        # Crear un certificado autofirmado
+        certificate = crypto.X509()
+        certificate.get_subject().C = "ES"
+        certificate.get_subject().ST = "Comunidad de Madrid"
+        certificate.get_subject().L = "Pinto"
+        certificate.get_subject().O = "Mi organización"
+        certificate.get_subject().OU = "Mi unidad organizativa"
+        certificate.get_subject().CN = "localhost"
+        certificate.set_serial_number(1000)
+        certificate.gmtime_adj_notBefore(0)
+        certificate.gmtime_adj_notAfter(315360000)
+        certificate.set_issuer(certificate.get_subject())
+        certificate.set_pubkey(private_key)
+        certificate.sign(private_key, 'sha256')
         # No estoy seguro si debo devolver la private_key o si esto hace que la deje desprotegida, lo hago para poder
         # sacar la publica a partir de ella pq no llego a estar seguro si se puede usar, ya que he visto que primero
         # se genera la privada y a partir de ella la publica, pero parece que al reves se raya.
-        return certificate, private_key
+        pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.BestAvailableEncryption(userkey)
+        )
+        with open("private_key.pem", "wb") as f:
+            #Guardamos clave privada
+            f.write(pem)
+        return certificate
 
     def check_certificate(self, certificate, sign):
         # segun veo los certificados están compuestos por {(clave publica, N), Firma}
