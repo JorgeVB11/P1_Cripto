@@ -12,6 +12,7 @@ class Menu:
         self._db.load_json()
         self.type = 'inicial'  # inicial/principal
         self._key = ""
+        self._certificate = ""
 
     @staticmethod
     def menu_inicial():
@@ -49,6 +50,8 @@ class Menu:
         salt = os.urandom(16)
         # Generamos la clave a partir de la contraseña
         self._key = self._cripto.derive_password(password, salt)
+        self._certificate = self._cripto.create_certificate(int(usuario))
+        #Hay que guardar el certificado en un archivo .pem ahora, sigo mañana
         # Guardamos la cuenta y hasheamos la contraseña
         self._db.add_account(usuario, self._cripto.hash_password(password), base64.b64encode(salt).decode('utf-8'))
         print("Usuario registrtado correctamente.\n")
