@@ -13,7 +13,7 @@ ADDRESS_CA_CERTIFICATE = os.path.join("..", "ca_info", "ca_cert.pem")
 """ TODO:      
         - funcion para validar el certificado para poder iniciar sesion
         - funcion para pedir al user el path donde quieren guardar su certificado, y el nombre para el cert y clave
-        (los archivos). La funcion deveria juntar los nombres para pasarselos al de crear el cert
+        (los archivos). La funcion deveria juntar los nombres para pasarselos al de crear el cert<-meter esto en menu.py
         -funcion para firmar digitalmente (esperar a la confirmacion del profe): toma de parametros private key y nonce
         - funcion para comprobar la firma
 """
@@ -65,16 +65,34 @@ class Criptografia:
     @staticmethod
     def get_certificate(address: str):
         """Función para devolver un certificado .pem dado su address"""
-        with open(address, "rb") as ca_cert_file:
-            pem_file = ca_cert_file.read()
-            return crypto.load_certificate(crypto.FILETYPE_PEM, pem_file)
+        try:
+            with open(address, "rb") as ca_cert_file:
+                pem_file = ca_cert_file.read()
+                return crypto.load_certificate(crypto.FILETYPE_PEM, pem_file)
+        except FileNotFoundError:
+            print(f"El archivo {address} no fue encontrado.")
+        except IOError:
+            print("Error al leer el archivo.")
+        except ValueError:
+            print("Error al cargar la clave privada, puede que esté corrupta o mal formateada.")
+        except Exception as e:
+            print(f"Un error inesperado ocurrió: {e}")
 
     @staticmethod
     def get_pkey(address: str):
         """Función para devolver una pkey conenida en un .pem dado su address"""
-        with open(address, 'rb') as pkey_file:
-            pkey_pem = pkey_file.read()
-            return crypto.load_privatekey(crypto.FILETYPE_PEM, pkey_pem)
+        try:
+            with open(address, 'rb') as pkey_file:
+                pkey_pem = pkey_file.read()
+                return crypto.load_privatekey(crypto.FILETYPE_PEM, pkey_pem)
+        except FileNotFoundError:
+            print(f"El archivo {address} no fue encontrado.")
+        except IOError:
+            print("Error al leer el archivo.")
+        except ValueError:
+            print("Error al cargar la clave privada, puede que esté corrupta o mal formateada.")
+        except Exception as e:
+            print(f"Un error inesperado ocurrió: {e}")
 
     def generate_certificate(self, id_telf: int, user_name: str, priv_key_path: str, certificate_path:  str):
         """Método para generar un certificado para un usuario"""
