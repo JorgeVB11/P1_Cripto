@@ -11,6 +11,7 @@ platformdirs==3.11.0
 pycparser==2.21
 pycryptodome==3.19.0
 pylint==3.0.1
+pyOpenSSL==23.3.0
 tomli==2.0.1
 tomlkit==0.12.1
 typing_extensions==4.8.0
