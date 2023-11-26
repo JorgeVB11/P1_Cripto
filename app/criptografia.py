@@ -18,16 +18,18 @@ class Criptografia:
 
     def sign_digitally(self, mensaje, private_key_path):
         private_key = self.get_pkey(private_key_path)
-        return crypto.sign(private_key, mensaje, 'sha256')
+        return crypto.sign(private_key, mensaje, "sha256")
 
-    def verify_sign(self, mensaje, sign):
-
-        crypto.verify(self._ca_cert, sign, mensaje, 'sha256')
-        print("La firma es válida.\n")
-        return True
-        """except crypto.Error:
+    def verify_sign(self, mensaje, sign, user_cert_address):
+        try:
+            user_cert = self.get_certificate(user_cert_address)
+            crypto.verify(user_cert, sign, mensaje, "sha256")
+            print("La firma es válida.\n")
+            return True
+        except crypto.Error:
+            print(crypto.Error)
             print("La firma es inválida.\n")
-            return False"""
+            return False
 
     def verify_certificate(self, certificado_user_path):
         """Función para comprobar que los datos de un certificado son válidos"""

@@ -8,11 +8,6 @@ from json_manager_comprobaciones import JsonManagerComprobacion
 class Menu:
     def __init__(self):
         self._cripto = Criptografia()
-        msg_user = self._cripto.generate_message("brielo")
-        sign = self._cripto.sign_digitally(msg_user, "C:/Users/Gabriel Ortega/Downloads/key.pem")
-        self._cripto.verify_sign(msg_user, sign)
-        self._cripto.verify_certificate("C:/Users/Gabriel Ortega/Downloads/cert.pem")
-
         self._db = JsonManager("db.json")
         self._db.load_json()
         self.type = 'inicial'  # inicial/principal
