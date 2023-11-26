@@ -8,6 +8,11 @@ from json_manager_comprobaciones import JsonManagerComprobacion
 class Menu:
     def __init__(self):
         self._cripto = Criptografia()
+        msg_user = self._cripto.generate_message("brielo")
+        sign = self._cripto.sign_digitally(msg_user, "C:/Users/Gabriel Ortega/Downloads/key.pem")
+        self._cripto.verify_sign(msg_user, sign)
+        self._cripto.verify_certificate("C:/Users/Gabriel Ortega/Downloads/cert.pem")
+
         self._db = JsonManager("db.json")
         self._db.load_json()
         self.type = 'inicial'  # inicial/principal
@@ -52,19 +57,20 @@ class Menu:
         # Generamos la clave a partir de la contraseña
         self._key = self._cripto.derive_password(password, salt)
         cert_route = input("Escribe la ruta en la que quieres guardar tu certificado, recuerda usar '/'\n")
-        while os.path.exists(cert_route) == False:
+        while not os.path.exists(cert_route):
             cert_route = input("Direccion invalida, introduce una válida\n")
         pkey_route = input("Escribe la ruta en la que quieres guardar tu clave, recuerda usar '/'\n")
-        while os.path.exists(pkey_route) == False:
+        while not os.path.exists(pkey_route):
             pkey_route = input("Direccion invalida, introduce una válida\n")
         cert_item_route = (cert_route + "/" + nombre_usuario+"_cert.pem")
 
         pkey_item_route = (pkey_route + "/" + nombre_usuario+"_key.pem")
-        print(pkey_route,"\n",cert_route)
-        self._certificate = self._cripto.generate_certificate(int(usuario), nombre_usuario,pkey_item_route, cert_item_route)
-        # Hay que guardar el certificado en un archivo .pem ahora, sigo mañana
+        print(pkey_route, "\n", cert_route)
+        self._certificate = self._cripto.generate_certificate(int(usuario), nombre_usuario, pkey_item_route,
+                                                              cert_item_route)
         # Guardamos la cuenta y hasheamos la contraseña
-        self._db.add_account(usuario, self._cripto.hash_password(password), base64.b64encode(salt).decode('utf-8'), self._certificate)
+        self._db.add_account(usuario, self._cripto.hash_password(password), base64.b64encode(salt).decode('utf-8'),
+                             self._certificate)
         print("Usuario registrtado correctamente.\n")
         self.type = 'principal'
         return 0

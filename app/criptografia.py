@@ -1,47 +1,62 @@
 import os
+import time
 import argon2
 import base64
 from OpenSSL import crypto
-from cryptography.exceptions import InvalidSignature
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
 from Crypto.Cipher import AES
 
 ADDRESS_PKEY = os.path.join("..", "ca_info", "ca_key.pem")
 ADDRESS_CA_CERTIFICATE = os.path.join("..", "ca_info", "ca_cert.pem")
 
-""" TODO:      
-        - funcion para validar el certificado para poder iniciar sesion
-        - funcion para pedir al user el path donde quieren guardar su certificado, y el nombre para el cert y clave
-        (los archivos). La funcion deveria juntar los nombres para pasarselos al de crear el cert<-meter esto en menu.py
-        -funcion para firmar digitalmente (esperar a la confirmacion del profe): toma de parametros private key y nonce
-        - funcion para comprobar la firma
-"""
-
 
 class Criptografia:
-    """Funciones que sirven para manejar la encriptación y desencriptación"""
+    """Funciones que sirven para manejar todos los aspectos criptográficos de la aplicación"""
     def __init__(self):
         self._ph = argon2.PasswordHasher()
+        self._ca_cert = self.get_certificate(ADDRESS_CA_CERTIFICATE)
+        self._ca_pubkey = self._ca_cert.get_pubkey()
 
-    @staticmethod
-    def sign_digitally(hashed_password, private_key):
-        sign = private_key.sign(hashed_password.encode(), padding.PSS(padding.MGF1(hashes.SHA256()),
-                                                                      padding.PSS.MAX_LENGTH), hashes.SHA256())
-        return sign
+    def sign_digitally(self, mensaje, private_key_path):
+        private_key = self.get_pkey(private_key_path)
+        return crypto.sign(private_key, mensaje, 'sha256')
 
-    @staticmethod
-    def verify_sign(hashed_password, sign, public_key):
-        try:
-            public_key.verify(sign, hashed_password.encode(), padding.PSS(padding.MGF1(hashes.SHA256()),
-                                                                          padding.PSS.MAX_LENGTH), hashes.SHA256())
-            return True
-        except InvalidSignature:
-            return False
+    def verify_sign(self, mensaje, sign):
+
+        crypto.verify(self._ca_cert, sign, mensaje, 'sha256')
+        print("La firma es válida.\n")
+        return True
+        """except crypto.Error:
+            print("La firma es inválida.\n")
+            return False"""
+
+    def verify_certificate(self, certificado_user_path):
+        """Función para comprobar que los datos de un certificado son válidos"""
+        # TODO: investigar como validar la firma del certificado
+        # Abrimos el certificado
+        cert_user = self.get_certificate(certificado_user_path)
+        # Comprobamos que somos nosotros los que han emitido este certificado
+        if cert_user.get_issuer() != self._ca_cert.get_subject():
+            print("El certificado no ha sido emitido por nosotros.\n")
+            return -1
+        # Comprobamos que el tiempo actual está dentro de la validez del certificado
+        ahora = time.time()
+        inicio_validez = time.strptime(cert_user.get_notBefore().decode('ascii'), '%Y%m%d%H%M%SZ')
+        fin_validez = time.strptime(cert_user.get_notAfter().decode('ascii'), '%Y%m%d%H%M%SZ')
+        # Convertimos las fechas de inicio y fin de validez en segundos desde la época UNIX
+        inicio_validez_segundos = int(time.mktime(inicio_validez))
+        fin_validez_segundos = int(time.mktime(fin_validez))
+        if inicio_validez_segundos > ahora:
+            print("La fecha del certificado es inválida.\n")
+            return -2
+        if fin_validez_segundos < ahora:
+            print("El certificado está caducado.\n")
+            return -3
+        print("El certificado es válido\n")
 
     @staticmethod
     def self_certificate():
-        """Función pora generar un certificado digital autofirmado"""
+        """Función pora generar un certificado digital autofirmado, la hemos ejecutado una vez únicamente, para generar
+        nuestro certificado"""
         # Generar una clave privada para la CA
         ca_key = crypto.PKey()
         ca_key.generate_key(crypto.TYPE_RSA, 2048)
@@ -96,10 +111,7 @@ class Criptografia:
 
     def generate_certificate(self, id_telf: int, user_name: str, priv_key_path: str, certificate_path:  str):
         """Método para generar un certificado para un usuario"""
-        # TODO: gestionar path del archivo del certificado, como hacer, si pedirle nombre del archivo al user o solo la
-        #  carpeta donde meterlo. Esto depende de la impleentacion en menu.py
         # Conseguimos el certificado y la clave privada de nuestra entidad certificadora
-        ca_cert = self.get_certificate(ADDRESS_CA_CERTIFICATE)
         ca_pkey = self.get_pkey(ADDRESS_PKEY)
         # Generar una clave privada para el usuario
         user_key = crypto.PKey()
@@ -109,7 +121,7 @@ class Criptografia:
         user_cert.set_version(2)  # Usamos la versión 3
         user_cert.set_serial_number(id_telf)
         user_cert.get_subject().CN = user_name
-        user_cert.set_issuer(ca_cert.get_subject())  # meter el issuer aqui
+        user_cert.set_issuer(self._ca_cert.get_subject())
         user_cert.gmtime_adj_notBefore(0)
         user_cert.gmtime_adj_notAfter(365 * 24 * 60 * 60)  # Validez de 1 año
         user_cert.set_pubkey(user_key)
@@ -121,10 +133,13 @@ class Criptografia:
         with open(certificate_path, "wb") as f:
             f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, user_cert))
 
-    def check_certificate(self, certificate, sign):
-        # segun veo los certificados están compuestos por {(clave publica, N), Firma}
-        # Por tanto habría que verificar que recibimos eso
-        pass
+    @staticmethod
+    def generate_message(usuario: str):
+        """Función que crea un mensaje que será firmado por el usuario"""
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+        nonce = os.urandom(16).hex()
+        mensaje = f"Usuario: {usuario}\nTimestamp: {timestamp}\nNonce: {nonce}"
+        return mensaje
 
     def hash_password(self, password):
         """Método para hashear la contraseña"""
