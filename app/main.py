@@ -4,7 +4,6 @@ from time import sleep
 menu = Menu()
 program_open = True
 conseguido = False
-
 while program_open:
     if menu.type == 'inicial':
         while not conseguido:

@@ -35,6 +35,7 @@ class Menu:
     def register(self):
         """Registrar nuevo usuario"""
         # Pedimos usuario
+        nombre_usuario = str(input("¿Cuál es tu nombre?"))
         usuario = input("¿Cuál es tu telf?: \n")
         while JsonManagerComprobacion.check_phonenum(usuario) == -1:
             usuario = input("Introduzca un número de teléfono válido (9 dígitos): \n")
@@ -50,7 +51,17 @@ class Menu:
         salt = os.urandom(16)
         # Generamos la clave a partir de la contraseña
         self._key = self._cripto.derive_password(password, salt)
-        # self._certificate = self._cripto.create_certificate(int(usuario), self._key)
+        cert_route = input("Escribe la ruta en la que quieres guardar tu certificado, recuerda usar '/'\n")
+        while os.path.exists(cert_route) == False:
+            cert_route = input("Direccion invalida, introduce una válida\n")
+        pkey_route = input("Escribe la ruta en la que quieres guardar tu clave, recuerda usar '/'\n")
+        while os.path.exists(pkey_route) == False:
+            pkey_route = input("Direccion invalida, introduce una válida\n")
+        cert_item_route = (cert_route + "/" + nombre_usuario+"_cert.pem")
+
+        pkey_item_route = (pkey_route + "/" + nombre_usuario+"_key.pem")
+        print(pkey_route,"\n",cert_route)
+        self._certificate = self._cripto.generate_certificate(int(usuario), nombre_usuario,pkey_item_route, cert_item_route)
         # Hay que guardar el certificado en un archivo .pem ahora, sigo mañana
         # Guardamos la cuenta y hasheamos la contraseña
         self._db.add_account(usuario, self._cripto.hash_password(password), base64.b64encode(salt).decode('utf-8'), self._certificate)
