@@ -101,6 +101,16 @@ class Criptografia:
         except Exception as e:
             print(f"Un error inesperado ocurrió: {e}")
 
+    def verify_sign(self, mensaje, sign, user_cert_address):
+        try:
+            user_cert = self.get_certificate(user_cert_address)
+            crypto.verify(user_cert, sign, mensaje, "sha256")
+            print("La firma es válida.\n")
+            return True
+        except crypto.Error:
+            print(crypto.Error)
+            print("La firma es inválida.\n")
+            return False
     def generate_certificate(self, id_telf: int, user_name: str, priv_key_path: str, certificate_path:  str):
         """Método para generar un certificado para un usuario"""
         # Conseguimos el certificado y la clave privada de nuestra entidad certificadora
