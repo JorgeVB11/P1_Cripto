@@ -60,7 +60,6 @@ class Menu:
         cert_item_route = (cert_route + "/" + nombre_usuario+"_cert.pem")
 
         pkey_item_route = (pkey_route + "/" + nombre_usuario+"_key.pem")
-        print(pkey_route, "\n", cert_route)
         self._certificate = self._cripto.generate_certificate(int(usuario), nombre_usuario, pkey_item_route,
                                                               cert_item_route)
         # Guardamos la cuenta y hasheamos la contraseña
@@ -90,6 +89,10 @@ class Menu:
                 self._key = self._cripto.derive_password(password, salt)
                 print("Contraseña correcta, iniciando sesion...\n")
                 self.type = 'principal'
+                cert_path = input("¿Cuál es la direccion de tu certificado? Recuerda usar /\n")
+                while not os.path.isfile(cert_path):
+                    cert_path = input("Direccion al certificado invalida, introduce una válida\n")
+                self._cripto.verify_certificate(cert_path, usuario)
                 return 0
         print("Volviendo al menú anterior...\n")
         return -1

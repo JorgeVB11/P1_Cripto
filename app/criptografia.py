@@ -31,7 +31,7 @@ class Criptografia:
             print("La firma es inválida.\n")
             return False
 
-    def verify_certificate(self, certificado_user_path):
+    def verify_certificate(self, certificado_user_path, usuario):
         """Función para comprobar que los datos de un certificado son válidos"""
         # TODO: investigar como validar la firma del certificado
         # Abrimos el certificado
@@ -40,6 +40,9 @@ class Criptografia:
         if cert_user.get_issuer() != self._ca_cert.get_subject():
             print("El certificado no ha sido emitido por nosotros.\n")
             return -1
+        if cert_user.get_serial_number() != usuario:
+            print("El certificado pertenece a otra persona.\n")
+            return -2
         # Comprobamos que el tiempo actual está dentro de la validez del certificado
         ahora = time.time()
         inicio_validez = time.strptime(cert_user.get_notBefore().decode('ascii'), '%Y%m%d%H%M%SZ')
@@ -49,10 +52,10 @@ class Criptografia:
         fin_validez_segundos = int(time.mktime(fin_validez))
         if inicio_validez_segundos > ahora:
             print("La fecha del certificado es inválida.\n")
-            return -2
+            return -3
         if fin_validez_segundos < ahora:
             print("El certificado está caducado.\n")
-            return -3
+            return -4
         print("El certificado es válido\n")
 
     @staticmethod
