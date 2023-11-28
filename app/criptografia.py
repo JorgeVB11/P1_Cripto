@@ -70,6 +70,7 @@ class Criptografia:
             return -1
         if not FileManager.write_certificate(ADDRESS_CA_CERTIFICATE, ca_cert):
             return -2
+        return 0
 
     def verify_sign(self, sign_path, user_cert_address):
         user_cert = FileManager.get_certificate(user_cert_address)
@@ -106,12 +107,14 @@ class Criptografia:
             return -1
         if not FileManager.write_certificate(certificate_path, user_cert):
             return -2
+        return 0
 
     def generate_message(self, usuario: str, path: str):
         """Función que crea un mensaje que será firmado por el usuario"""
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
         nonce = os.urandom(16).hex()
-        self._message = f"Usuario: {usuario}\nTimestamp: {timestamp}\nNonce: {nonce}"
+        message = f"Usuario: {usuario}\nTimestamp: {timestamp}\nNonce: {nonce}"
+        self._message = message.encode()
         path_archivo = path + "/sign_me.txt"
         return FileManager.write_message(path_archivo, self._message)
 

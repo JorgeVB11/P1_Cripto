@@ -79,7 +79,7 @@ class FileManager:
     @staticmethod
     def write_message(path_archivo, mensaje):
         try:
-            with open(path_archivo, "w") as file:
+            with open(path_archivo, "wb") as file:
                 file.write(mensaje)
                 return True
         except FileNotFoundError:

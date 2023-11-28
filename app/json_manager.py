@@ -58,12 +58,11 @@ class JsonManager:
                    self._account["data"][web]["nonce"]
         return -1, -1, -1
 
-    def add_account(self, phone, password, salt, certificate):
+    def add_account(self, phone, password, salt):
         """Añadir una cuenta al data_list"""
         new_account = {"telf": phone,
                        "password": password,
                        "salt": salt,
-                       "certificate": certificate,
                        "data": {}}
         self._account = new_account
         self._current_user = phone

@@ -14,7 +14,6 @@ class Menu:
         self._db.load_json()
         self.type = 'inicial'  # inicial/principal
         self._key = ""
-        self._certificate = ""
 
     @staticmethod
     def menu_inicial():
@@ -54,21 +53,20 @@ class Menu:
         # Generamos la clave a partir de la contraseña
         self._key = self._cripto.derive_password(password, salt)
         print("Creando certificado digital...\n")
-        sleep(1)
         cert_route = input("Escribe la ruta en la que quieres guardar tu certificado, recuerda usar '/'\n")
         while not os.path.exists(cert_route):
             cert_route = input("Dirección invalida, introduce una válida\n")
         pkey_route = input("Escribe la ruta en la que quieres guardar tu clave, recuerda usar '/'\n")
         while not os.path.exists(pkey_route):
             pkey_route = input("Dirección invalida, introduce una válida\n")
-        cert_item_route = (cert_route + "/" + nombre_usuario+"_cert.pem")
+        cert_item_route = (cert_route + "/" + "cert.pem")
 
-        pkey_item_route = (pkey_route + "/" + nombre_usuario+"_key.pem")
-        self._certificate = self._cripto.generate_certificate(int(usuario), nombre_usuario, pkey_item_route,
-                                                              cert_item_route)
+        pkey_item_route = (pkey_route + "/" + "key.pem")
+        if self._cripto.generate_certificate(int(usuario), nombre_usuario, pkey_item_route, cert_item_route) != 0:
+            print("Volviendo al menú anterior...jaja \n")
+            return -1
         # Guardamos la cuenta y hasheamos la contraseña
-        self._db.add_account(usuario, self._cripto.hash_password(password), base64.b64encode(salt).decode('utf-8'),
-                             self._certificate)
+        self._db.add_account(usuario, self._cripto.hash_password(password), base64.b64encode(salt).decode('utf-8'))
         print("Usuario registrtado correctamente.\n")
         self.type = 'principal'
         return 0
