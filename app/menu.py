@@ -95,7 +95,7 @@ class Menu:
             self.check_certificate(usuario)
             print("Todo correcto, iniciando sesión...\n")
             self.type = 'principal'
-            for item in self._db.get_account()["data"]:
+            for item in self._db.get_account()["data"]: #Comprobamos que las contraseñas no han sido alteradas
                 ciphertext, tag, nonce = self._db.password_query(item)
                 #ciphertext, tag, nonce = bytes(ciphertext), bytes(tag), bytes(nonce)
                 if isinstance(nonce, bytes):
@@ -116,10 +116,10 @@ class Menu:
             message_path = input("Introduce otro path: \n")
         print("Cuando termines de firmar, dinos el path de tu archivo que contenga la firma.\n")
         sleep(1)
-        """sign_path = input("Danos el path de la firma: \n")
+        sign_path = input("Danos el path de la firma: \n")
         while not self._cripto.verify_sign(sign_path, cert_path):
             sign_path = input("Introduce de nuevo el path de la firma: \n")
-            cert_path = input("Introduce de nuevo el path de la firma: \n")"""
+            cert_path = input("Introduce de nuevo el path del certificado: \n")
 
     @staticmethod
     def exit_system():
