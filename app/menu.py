@@ -3,7 +3,7 @@ import os
 from criptografia import Criptografia
 from json_manager import JsonManager
 from json_manager_comprobaciones import JsonManagerComprobacion
-
+from OpenSSL import crypto
 
 class Menu:
     def __init__(self):
@@ -87,11 +87,17 @@ class Menu:
                 salt = base64.b64decode(self._db.get_salt())
                 # Generamos la clave a partir de la contraseña
                 self._key = self._cripto.derive_password(password, salt)
+
                 print("Contraseña correcta, iniciando sesion...\n")
                 self.type = 'principal'
                 cert_path = input("¿Cuál es la direccion de tu certificado? Recuerda usar /\n")
                 while not os.path.isfile(cert_path):
                     cert_path = input("Direccion al certificado invalida, introduce una válida\n")
+                cert_user_key = input("¿Cuál es la direccion de tu private key? Recuerda usar /\n")
+                while not os.path.isfile(cert_user_key):
+                    cert_user_key = input("Direccion a la clave invalida, introduce una válida\n")
+                pkey = self._cripto.get_pkey(cert_user_key)
+                self._cripto.verify_sign("prueba",crypto.sign(pkey,"prueba","SHA256"), cert_path)
                 self._cripto.verify_certificate(cert_path, usuario)
                 return 0
         print("Volviendo al menú anterior...\n")

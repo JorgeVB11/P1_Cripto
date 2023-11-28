@@ -27,7 +27,7 @@ class Criptografia:
         if cert_user.get_issuer() != self._ca_cert.get_subject():
             print("El certificado no ha sido emitido por nosotros.\n")
             return -1
-        if cert_user.get_serial_number() != usuario:
+        if str(cert_user.get_serial_number()) != str(usuario):
             print("El certificado pertenece a otra persona.\n")
             return -2
         # Comprobamos que el tiempo actual está dentro de la validez del certificado
