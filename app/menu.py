@@ -1,11 +1,13 @@
 import base64
 import os
+from time import sleep
 from criptografia import Criptografia
 from json_manager import JsonManager
 from json_manager_comprobaciones import JsonManagerComprobacion
-from OpenSSL import crypto
+
 
 class Menu:
+    """Clase para configurar la interfaz de usuario y los requests que esta hace a funcionalidades técnicas"""
     def __init__(self):
         self._cripto = Criptografia()
         self._db = JsonManager("db.json")
@@ -35,7 +37,7 @@ class Menu:
     def register(self):
         """Registrar nuevo usuario"""
         # Pedimos usuario
-        nombre_usuario = str(input("¿Cuál es tu nombre?"))
+        nombre_usuario = input("¿Cuál es tu nombre?: \n")
         usuario = input("¿Cuál es tu telf?: \n")
         while JsonManagerComprobacion.check_phonenum(usuario) == -1:
             usuario = input("Introduzca un número de teléfono válido (9 dígitos): \n")
@@ -51,12 +53,14 @@ class Menu:
         salt = os.urandom(16)
         # Generamos la clave a partir de la contraseña
         self._key = self._cripto.derive_password(password, salt)
+        print("Creando certificado digital...\n")
+        sleep(1)
         cert_route = input("Escribe la ruta en la que quieres guardar tu certificado, recuerda usar '/'\n")
         while not os.path.exists(cert_route):
-            cert_route = input("Direccion invalida, introduce una válida\n")
+            cert_route = input("Dirección invalida, introduce una válida\n")
         pkey_route = input("Escribe la ruta en la que quieres guardar tu clave, recuerda usar '/'\n")
         while not os.path.exists(pkey_route):
-            pkey_route = input("Direccion invalida, introduce una válida\n")
+            pkey_route = input("Dirección invalida, introduce una válida\n")
         cert_item_route = (cert_route + "/" + nombre_usuario+"_cert.pem")
 
         pkey_item_route = (pkey_route + "/" + nombre_usuario+"_key.pem")
@@ -83,25 +87,35 @@ class Menu:
             if not self._db.check_password(password):
                 intentos -= 1
                 print("Contraseña incorrecta. Tienes", intentos, " intentos\n")
-            else:
-                salt = base64.b64decode(self._db.get_salt())
-                # Generamos la clave a partir de la contraseña
-                self._key = self._cripto.derive_password(password, salt)
-
-                print("Contraseña correcta, iniciando sesion...\n")
-                self.type = 'principal'
-                cert_path = input("¿Cuál es la direccion de tu certificado? Recuerda usar /\n")
-                while not os.path.isfile(cert_path):
-                    cert_path = input("Direccion al certificado invalida, introduce una válida\n")
-                cert_user_key = input("¿Cuál es la direccion de tu private key? Recuerda usar /\n")
-                while not os.path.isfile(cert_user_key):
-                    cert_user_key = input("Direccion a la clave invalida, introduce una válida\n")
-                pkey = self._cripto.get_pkey(cert_user_key)
-                self._cripto.verify_sign(self._key,crypto.sign(pkey,self._key,"SHA256"), cert_path)
-                self._cripto.verify_certificate(cert_path, usuario)
-                return 0
+                continue
+            # Conseguimos la salt para derivar la password
+            salt = base64.b64decode(self._db.get_salt())
+            # Generamos la clave a partir de la contraseña
+            self._key = self._cripto.derive_password(password, salt)
+            # Ahora comprobamos la identidad del usuario con su certificado
+            print("Contraseña correcta, ahora necesitamos tu certificado digital.\n")
+            self.check_certificate(usuario)
+            print("Todo correcto, iniciando sesión...\n")
+            self.type = 'principal'
+            return 0
         print("Volviendo al menú anterior...\n")
         return -1
+
+    def check_certificate(self, usuario):
+        """Función para getsionar todos los aspectos de verificación de certificado"""
+        cert_path = input("¿Cuál es la dirección de tu certificado? Recuerda usar /\n")
+        while self._cripto.verify_certificate(cert_path, usuario) == -1:
+            cert_path = input("Introduce otra dirección: \n")
+        print("Necesitamos que firmes un archivo de texto que vamos a generar.\n")
+        message_path = input("Danos un path para guardar el .txt: \n")
+        while not self._cripto.generate_message(usuario, message_path):
+            message_path = input("Introduce otro path: \n")
+        print("Cuando termines de firmar, dinos el path de tu archivo que contenga la firma.\n")
+        sleep(1)
+        sign_path = input("Danos el path de la firma: \n")
+        while not self._cripto.verify_sign(sign_path, cert_path):
+            sign_path = input("Introduce de nuevo el path de la firma: \n")
+            cert_path = input("Introduce de nuevo el path de la firma: \n")
 
     @staticmethod
     def exit_system():

@@ -4,6 +4,7 @@ import argon2
 import base64
 from OpenSSL import crypto
 from Crypto.Cipher import AES
+from file_manager import FileManager
 
 ADDRESS_PKEY = os.path.join("..", "ca_info", "ca_key.pem")
 ADDRESS_CA_CERTIFICATE = os.path.join("..", "ca_info", "ca_cert.pem")
@@ -13,23 +14,23 @@ class Criptografia:
     """Funciones que sirven para manejar todos los aspectos criptográficos de la aplicación"""
     def __init__(self):
         self._ph = argon2.PasswordHasher()
-        self._ca_cert = self.get_certificate(ADDRESS_CA_CERTIFICATE)
+        self._ca_cert = FileManager.get_certificate(ADDRESS_CA_CERTIFICATE)
         self._ca_pubkey = self._ca_cert.get_pubkey()
-
-
+        self._message = ""
 
     def verify_certificate(self, certificado_user_path, usuario):
         """Función para comprobar que los datos de un certificado son válidos"""
-        # TODO: investigar como validar la firma del certificado
         # Abrimos el certificado
-        cert_user = self.get_certificate(certificado_user_path)
+        cert_user = FileManager.get_certificate(certificado_user_path)
+        if not cert_user:
+            return -1
         # Comprobamos que somos nosotros los que han emitido este certificado
         if cert_user.get_issuer() != self._ca_cert.get_subject():
             print("El certificado no ha sido emitido por nosotros.\n")
             return -1
         if str(cert_user.get_serial_number()) != str(usuario):
             print("El certificado pertenece a otra persona.\n")
-            return -2
+            return -1
         # Comprobamos que el tiempo actual está dentro de la validez del certificado
         ahora = time.time()
         inicio_validez = time.strptime(cert_user.get_notBefore().decode('ascii'), '%Y%m%d%H%M%SZ')
@@ -39,11 +40,12 @@ class Criptografia:
         fin_validez_segundos = int(time.mktime(fin_validez))
         if inicio_validez_segundos > ahora:
             print("La fecha del certificado es inválida.\n")
-            return -3
+            return -4
         if fin_validez_segundos < ahora:
             print("El certificado está caducado.\n")
             return -4
         print("El certificado es válido\n")
+        return 0
 
     @staticmethod
     def self_certificate():
@@ -64,57 +66,27 @@ class Criptografia:
         # Firmar el certificado de la CA con su propia clave privada
         ca_cert.sign(ca_key, 'sha256')
         # Exportar la clave privada y el certificado de la CA
-        with open(ADDRESS_PKEY, "wb") as f:
-            f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, ca_key))
-        with open(ADDRESS_CA_CERTIFICATE, "wb") as f:
-            f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, ca_cert))
+        if not FileManager.write_pkey(ADDRESS_PKEY, ca_key):
+            return -1
+        if not FileManager.write_certificate(ADDRESS_CA_CERTIFICATE, ca_cert):
+            return -2
 
-    @staticmethod
-    def get_certificate(address: str):
-        """Función para devolver un certificado .pem dado su address"""
+    def verify_sign(self, sign_path, user_cert_address):
+        user_cert = FileManager.get_certificate(user_cert_address)
+        user_sign = FileManager.get_sign(sign_path)
         try:
-            with open(address, "rb") as ca_cert_file:
-                pem_file = ca_cert_file.read()
-                return crypto.load_certificate(crypto.FILETYPE_PEM, pem_file)
-        except FileNotFoundError:
-            print(f"El archivo {address} no fue encontrado.")
-        except IOError:
-            print("Error al leer el archivo.")
-        except ValueError:
-            print("Error al cargar la clave privada, puede que esté corrupta o mal formateada.")
-        except Exception as e:
-            print(f"Un error inesperado ocurrió: {e}")
-
-    @staticmethod
-    def get_pkey(address: str):
-        """Función para devolver una pkey conenida en un .pem dado su address"""
-        try:
-            with open(address, 'rb') as pkey_file:
-                pkey_pem = pkey_file.read()
-                return crypto.load_privatekey(crypto.FILETYPE_PEM, pkey_pem)
-        except FileNotFoundError:
-            print(f"El archivo {address} no fue encontrado.")
-        except IOError:
-            print("Error al leer el archivo.")
-        except ValueError:
-            print("Error al cargar la clave privada, puede que esté corrupta o mal formateada.")
-        except Exception as e:
-            print(f"Un error inesperado ocurrió: {e}")
-
-    def verify_sign(self, mensaje, sign, user_cert_address):
-        try:
-            user_cert = self.get_certificate(user_cert_address)
-            crypto.verify(user_cert, sign, mensaje, "sha256")
+            crypto.verify(user_cert, user_sign, self._message, "sha256")
             print("La firma es válida.\n")
             return True
         except crypto.Error:
             print(crypto.Error)
             print("La firma es inválida.\n")
             return False
+
     def generate_certificate(self, id_telf: int, user_name: str, priv_key_path: str, certificate_path:  str):
         """Método para generar un certificado para un usuario"""
         # Conseguimos el certificado y la clave privada de nuestra entidad certificadora
-        ca_pkey = self.get_pkey(ADDRESS_PKEY)
+        ca_pkey = FileManager.get_pkey(ADDRESS_PKEY)
         # Generar una clave privada para el usuario
         user_key = crypto.PKey()
         user_key.generate_key(crypto.TYPE_RSA, 2048)
@@ -128,20 +100,20 @@ class Criptografia:
         user_cert.gmtime_adj_notAfter(365 * 24 * 60 * 60)  # Validez de 1 año
         user_cert.set_pubkey(user_key)
         # Firmar el certificado del usuario con la clave privada de la CA
-        user_cert.sign(ca_pkey, 'sha256')  # meter nuestra key aqui
+        user_cert.sign(ca_pkey, 'sha256')
         # Exportar la clave privada y el certificado del usuario
-        with open(priv_key_path, "wb") as f:
-            f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, user_key))
-        with open(certificate_path, "wb") as f:
-            f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, user_cert))
+        if not FileManager.write_pkey(priv_key_path, user_key):
+            return -1
+        if not FileManager.write_certificate(certificate_path, user_cert):
+            return -2
 
-    @staticmethod
-    def generate_message(usuario: str):
+    def generate_message(self, usuario: str, path: str):
         """Función que crea un mensaje que será firmado por el usuario"""
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
         nonce = os.urandom(16).hex()
-        mensaje = f"Usuario: {usuario}\nTimestamp: {timestamp}\nNonce: {nonce}"
-        return mensaje
+        self._message = f"Usuario: {usuario}\nTimestamp: {timestamp}\nNonce: {nonce}"
+        path_archivo = path + "/sign_me.txt"
+        return FileManager.write_message(path_archivo, self._message)
 
     def hash_password(self, password):
         """Método para hashear la contraseña"""
