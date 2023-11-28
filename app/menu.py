@@ -97,7 +97,7 @@ class Menu:
                 while not os.path.isfile(cert_user_key):
                     cert_user_key = input("Direccion a la clave invalida, introduce una válida\n")
                 pkey = self._cripto.get_pkey(cert_user_key)
-                self._cripto.verify_sign("prueba",crypto.sign(pkey,"prueba","SHA256"), cert_path)
+                self._cripto.verify_sign(self._key,crypto.sign(pkey,self._key,"SHA256"), cert_path)
                 self._cripto.verify_certificate(cert_path, usuario)
                 return 0
         print("Volviendo al menú anterior...\n")
