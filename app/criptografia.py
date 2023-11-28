@@ -51,10 +51,10 @@ class Criptografia:
     def self_certificate():
         """Función pora generar un certificado digital autofirmado, la hemos ejecutado una vez únicamente, para generar
         nuestro certificado"""
-        # Generar una clave privada para la CA
+        # Generar una clave privada para la AC1
         ca_key = crypto.PKey()
         ca_key.generate_key(crypto.TYPE_RSA, 2048)
-        # Crear un certificado de CA
+        # Crear un certificado de AC1
         ca_cert = crypto.X509()
         ca_cert.set_version(2)  # Version 3
         ca_cert.set_serial_number(1)
@@ -63,9 +63,9 @@ class Criptografia:
         ca_cert.gmtime_adj_notBefore(0)
         ca_cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)  # Validez de 10 años
         ca_cert.set_pubkey(ca_key)
-        # Firmar el certificado de la CA con su propia clave privada
+        # Firmar el certificado de la AC1 con su propia clave privada
         ca_cert.sign(ca_key, 'sha256')
-        # Exportar la clave privada y el certificado de la CA
+        # Exportar la clave privada y el certificado de la AC1
         if not FileManager.write_pkey(ADDRESS_PKEY, ca_key):
             return -1
         if not FileManager.write_certificate(ADDRESS_CA_CERTIFICATE, ca_cert):
@@ -100,7 +100,7 @@ class Criptografia:
         user_cert.gmtime_adj_notBefore(0)
         user_cert.gmtime_adj_notAfter(365 * 24 * 60 * 60)  # Validez de 1 año
         user_cert.set_pubkey(user_key)
-        # Firmar el certificado del usuario con la clave privada de la CA
+        # Firmar el certificado del usuario con la clave privada de la AC1
         user_cert.sign(ca_pkey, 'sha256')
         # Exportar la clave privada y el certificado del usuario
         if not FileManager.write_pkey(priv_key_path, user_key):
@@ -117,6 +117,7 @@ class Criptografia:
         self._message = message.encode()
         path_archivo = path + "/sign_me.txt"
         return FileManager.write_message(path_archivo, self._message)
+
 
     def hash_password(self, password):
         """Método para hashear la contraseña"""
