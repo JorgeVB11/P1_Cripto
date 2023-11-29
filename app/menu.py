@@ -15,10 +15,11 @@ class Menu:
         self.type = 'inicial'  # inicial/principal
         self._key = ""
 
-    @staticmethod
-    def menu_inicial():
+    def menu_inicial(self):
         """"Método para registrarse o iniciar sesión"""
         eleccion = input("Bienvenido. ¿Quieres Registrarte (R), iniciar Sesión (S) o terminar Operaciones(T)?: \n")
+        # Cargamos la base de datos para tenerla actualizada
+        self._db.load_json()
         while eleccion.lower() not in ['r', 's', 't']:
             eleccion = input("Por favor, teclea 'R' para registrarte o 'S' para iniciar sesión:\n")
         return eleccion.lower()
@@ -70,7 +71,7 @@ class Menu:
         if self._cripto.generate_private_key_and_public_key(pkey_item_route, cert_password, usuario) == -1:
             print("Volviendo al menú anterior...\n")
             return -1
-        self._cripto.generate_certificate(int(usuario))
+        self._cripto.generate_certificate(usuario)
 
     def login(self):
         """Inicio de sesion"""
@@ -99,10 +100,10 @@ class Menu:
             print("Comprobando si todas tus contraseñas están intactas...\n")
             for item in self._db.get_account()["data"]:  # Comprobamos que las contraseñas no han sido alteradas
                 ciphertext, tag, nonce = self._db.password_query(item)
-                # ciphertext, tag, nonce = bytes(ciphertext), bytes(tag), bytes(nonce)
-                if isinstance(nonce, bytes):
-                    print("tipo byte")
-                self._cripto.desencrypt(self._key, ciphertext.encode(), tag.encode(), nonce.encode())
+                if self._cripto.desencrypt(self._key, ciphertext.encode(), tag.encode(), nonce.encode()) == -1:
+                    print("Te recomendamos cambiar las contraseñas que tenías en la base de datos, por si el atacante "
+                          "tuviera tu contraseña de la cuenta\n")
+                    return -1
             print("Todo correcto.\n")
             return 0
         print("Volviendo al menú anterior...\n")

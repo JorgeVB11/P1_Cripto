@@ -50,9 +50,11 @@ class JsonManager:
     def get_salt(self):
         """Método para conseguir el salt de una cuenta"""
         return self._account["salt"]
+
     def get_account(self):
         "Metodo para devolver la cuenta"
         return self._account
+
     def password_query(self, web):
         """Método para devolver una contraseña cifrada guardada en la cuenta"""
         if web in self._account["data"]:

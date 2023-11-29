@@ -188,5 +188,7 @@ class Criptografia:
             data = cipher.decrypt_and_verify(ciphertext, tag)
             return data.decode()
         except ValueError:
-            print("Tampering detectado (data no coincide con tag, brecha de seguridad)")
+            print("----------------------------------------\n")
+            print("BRECHA DE SEGURIDAD: TAMPERING DETECTADO\n")
+            print("----------------------------------------\n")
             return -1
