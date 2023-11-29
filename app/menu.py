@@ -97,7 +97,7 @@ class Menu:
                 break
             print("Todo correcto, iniciando sesión...\n")
             self.type = 'principal'
-            for item in self._db.get_account()["data"]:
+            for item in self._db.get_account()["data"]: #Comprobamos que las contraseñas no han sido alteradas
                 ciphertext, tag, nonce = self._db.password_query(item)
                 # ciphertext, tag, nonce = bytes(ciphertext), bytes(tag), bytes(nonce)
                 if isinstance(nonce, bytes):
