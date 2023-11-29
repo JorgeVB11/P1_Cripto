@@ -1,4 +1,5 @@
 from OpenSSL import crypto
+from cryptography.hazmat.primitives import serialization
 
 
 class FileManager:
@@ -51,10 +52,14 @@ class FileManager:
             return False
 
     @staticmethod
-    def write_pkey(path, user_key):
+    def write_pkey(private_key_path, private_key, password):
         try:
-            with open(path, "wb") as f:
-                f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, user_key))
+            with open(private_key_path, "wb") as f:
+                f.write(private_key.private_bytes(
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PrivateFormat.TraditionalOpenSSL,
+                    encryption_algorithm=serialization.BestAvailableEncryption(password),
+                ))
                 return True
         except FileNotFoundError:
             print("El path es inválido.\n")

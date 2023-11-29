@@ -36,7 +36,6 @@ class Menu:
     def register(self):
         """Registrar nuevo usuario"""
         # Pedimos usuario
-        nombre_usuario = input("¿Cuál es tu nombre?: \n")
         usuario = input("¿Cuál es tu telf?: \n")
         while JsonManagerComprobacion.check_phonenum(usuario) == -1:
             usuario = input("Introduzca un número de teléfono válido (9 dígitos): \n")
@@ -52,24 +51,26 @@ class Menu:
         salt = os.urandom(16)
         # Generamos la clave a partir de la contraseña
         self._key = self._cripto.derive_password(password, salt)
-        print("Creando certificado digital...\n")
-        cert_route = input("Escribe la ruta en la que quieres guardar tu certificado, recuerda usar '/'\n")
-        while not os.path.exists(cert_route):
-            cert_route = input("Dirección invalida, introduce una válida\n")
-        pkey_route = input("Escribe la ruta en la que quieres guardar tu clave, recuerda usar '/'\n")
-        while not os.path.exists(pkey_route):
-            pkey_route = input("Dirección invalida, introduce una válida\n")
-        cert_item_route = (cert_route + "/" + "cert.pem")
-
-        pkey_item_route = (pkey_route + "/" + "key.pem")
-        if self._cripto.generate_certificate(int(usuario), nombre_usuario, pkey_item_route, cert_item_route) != 0:
-            print("Volviendo al menú anterior...jaja \n")
-            return -1
+        # Creamos el certificado digital
+        self.gestion_generacion_cert(usuario)
         # Guardamos la cuenta y hasheamos la contraseña
         self._db.add_account(usuario, self._cripto.hash_password(password), base64.b64encode(salt).decode('utf-8'))
         print("Usuario registrtado correctamente.\n")
         self.type = 'principal'
         return 0
+
+    def gestion_generacion_cert(self, usuario):
+        """Función para reunir toda la info necesaria para certificado y llamar a las funciones que lo crean"""
+        print("Creando certificado digital...\n")
+        cert_password = input("Introduce una contraseña para cifrar la  clave privada de tu certificado:\n")
+        pkey_route = input("Escribe la ruta en la que quieres guardar tu clave, recuerda usar '/'\n")
+        while not os.path.exists(pkey_route):
+            pkey_route = input("Dirección invalida, introduce una válida\n")
+        pkey_item_route = (pkey_route + "/" + usuario + "-key.pem")
+        if self._cripto.generate_private_key_and_public_key(pkey_item_route, cert_password, usuario) == -1:
+            print("Volviendo al menú anterior...\n")
+            return -1
+        self._cripto.generate_certificate(int(usuario))
 
     def login(self):
         """Inicio de sesion"""
@@ -92,12 +93,13 @@ class Menu:
             self._key = self._cripto.derive_password(password, salt)
             # Ahora comprobamos la identidad del usuario con su certificado
             print("Contraseña correcta, ahora necesitamos tu certificado digital.\n")
-            self.check_certificate(usuario)
+            if self.check_certificate(usuario) == -1:
+                break
             print("Todo correcto, iniciando sesión...\n")
             self.type = 'principal'
             for item in self._db.get_account()["data"]:
                 ciphertext, tag, nonce = self._db.password_query(item)
-                #ciphertext, tag, nonce = bytes(ciphertext), bytes(tag), bytes(nonce)
+                # ciphertext, tag, nonce = bytes(ciphertext), bytes(tag), bytes(nonce)
                 if isinstance(nonce, bytes):
                     print("tipo byte")
                 self._cripto.desencrypt(self._key, ciphertext.encode(), tag.encode(), nonce.encode())
@@ -107,19 +109,18 @@ class Menu:
 
     def check_certificate(self, usuario):
         """Función para getsionar todos los aspectos de verificación de certificado"""
-        cert_path = input("¿Cuál es la dirección de tu certificado? Recuerda usar /\n")
-        while self._cripto.verify_certificate(cert_path, usuario) == -1:
-            cert_path = input("Introduce otra dirección: \n")
+        if self._cripto.verify_certificate(usuario) == -1:
+            # Si el certificado no es válido, creamos uno nuevo
+            return -1
         print("Necesitamos que firmes un archivo de texto que vamos a generar.\n")
         message_path = input("Danos un path para guardar el .txt: \n")
         while not self._cripto.generate_message(usuario, message_path):
             message_path = input("Introduce otro path: \n")
         print("Cuando termines de firmar, dinos el path de tu archivo que contenga la firma.\n")
         sleep(1)
-        """sign_path = input("Danos el path de la firma: \n")
-        while not self._cripto.verify_sign(sign_path, cert_path):
+        sign_path = input("Danos el path de la firma: \n")
+        while not self._cripto.verify_sign(sign_path, usuario):
             sign_path = input("Introduce de nuevo el path de la firma: \n")
-            cert_path = input("Introduce de nuevo el path de la firma: \n")"""
 
     @staticmethod
     def exit_system():
