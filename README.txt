@@ -2,7 +2,7 @@
 AUTORES:
 -----------------------------------
 
-Gabriel Ortega y Jorge Viñas, grupo 5
+Gabriel Ortega y Jorge Viñas, grupo 6
 
 -----------------------------------
 IMPORTANTE:
