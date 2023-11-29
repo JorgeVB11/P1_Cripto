@@ -80,18 +80,25 @@ class Criptografia:
             return False
 
     def generate_message(self, usuario: str, path: str):
-
+        """Función para generar un mensaje único para ser firmado"""
+        # Generamos un timestamp
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
+        # Generamos un valor único
         nonce = os.urandom(16).hex()
+        # Mensaje adaptado al user
         message = f"Usuario: {usuario}\nTimestamp: {timestamp}\nNonce: {nonce}"
         self._message = message.encode()
+        # Guardamos el archivo
         path_archivo = path + "/sign_me.txt"
         return FileManager.write_message(path_archivo, self._message)
 
     @staticmethod
     def generate_certificate(phone_number):
+        """Función para generar un certificado"""
+        # Guardamos el cwd para volver mas adelante
         original_working_directory = os.getcwd()
         os.chdir("../Certificados/AC2/")
+        # Leemos el número de serie para meterlo como id del certificado
         with open("./serial", "rb") as file:
             file_data = file.read().decode("utf-8")
 
@@ -99,16 +106,18 @@ class Criptografia:
               "DEBERÍA VER EN UN CASO REAL.\n")
         password = input("Introduce la contraseña de la pkey:\n")
 
+        # Creamos el certificado y lo guardamos en un .pem
         os.system(f"openssl ca -in ./solicitudes/{phone_number}_csr.pem -notext -config ./openssl_AC2.cnf --passin "
                   f"pass:{password}")
-        print(os.getcwd())
         os.system(f"move nuevoscerts\\{file_data[:-1]}.pem  ..\\Usuarios\\{phone_number}-cert.pem")
         print("VOLVEMOS A LA TERMINAL DEL USUARIO.\n")
+        # Volvemos al dir en el que estábamos
         os.chdir(original_working_directory)
 
     @staticmethod
     def generate_csr(phone_number, private_key):
-        """Función para generaar un certificate signing request"""
+        """Función para generar un certificate signing request"""
+        # Metemos los datos en el csr y lo metemos en un archivo
         csr = x509.CertificateSigningRequestBuilder().subject_name(x509.Name([
             x509.NameAttribute(NameOID.COUNTRY_NAME, "ES"),
             x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "MADRID"),

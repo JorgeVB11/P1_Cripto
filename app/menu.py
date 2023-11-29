@@ -63,7 +63,7 @@ class Menu:
         """Función para reunir toda la info necesaria para certificado y llamar a las funciones que lo crean"""
         print("Creando certificado digital...\n")
         cert_password = input("Introduce una contraseña para cifrar la  clave privada de tu certificado:\n")
-        pkey_route = input("Escribe la ruta en la que quieres guardar tu clave, recuerda usar '/'\n")
+        pkey_route = input("Escribe la ruta en la que quieres guardar tu clave\n")
         while not os.path.exists(pkey_route):
             pkey_route = input("Dirección invalida, introduce una válida\n")
         pkey_item_route = (pkey_route + "/" + usuario + "-key.pem")
