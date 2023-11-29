@@ -3,12 +3,44 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
+
 """ESTE ARCHIVO EQUIVALE A UN SOFTWARE INSTALADO EN EL ORDENADOR DEL USUARIO, INDEPENDIENTE DE NUESTRA APLICACIÓN.
 DE FORMA OFICIAL NO SOMOS RESPONSABLES DEL MISMO"""
 
+path = input("Path de la clave privada:\n")
+password = input("Contraseña de la clave privada:\n")
+password = bytes(password, encoding="utf-8")
 
-def main():
-    """Función para firmar digitalmente un archivo"""
+# Cargar la clave privada
+with open(path, "rb") as key_file:
+    private_key = serialization.load_pem_private_key(
+        key_file.read(),
+        password=password,
+        backend=default_backend()
+    )
+
+path_mensaje = input("Path del mensaje que vas a firmar:\n")
+with open(path_mensaje, "r") as file:
+    mensaje = file.read()
+
+mensaje = bytes(mensaje, encoding="utf-8")
+# Firmar el mensaje
+signature = private_key.sign(
+    mensaje,
+    padding.PSS(
+        mgf=padding.MGF1(hashes.SHA256()),
+        salt_length=padding.PSS.MAX_LENGTH
+    ),
+    hashes.SHA256()
+)
+
+path_result = input("Carpeta para guardar el resultado: \n")
+path_result += "/sign.bin"
+with open(path_result, "wb") as signature_file:
+    signature_file.write(signature)
+
+"""def main():
+    
     mensaje = input("Path del mensaje a firmar: \n")
     key = input("Path de tu private key: \n")
     result = input("Path de la carpeta donde quieres guardar la firma: \n")
@@ -18,7 +50,7 @@ def main():
 
 
 def sign_digitally(mensaje_path, private_key_path, result_path):
-    """Función para firmar digitalmente un mensaje"""
+    
     # Abrimos la clave privada
     private_key = get_pkey(private_key_path)
     if private_key == -1:
@@ -45,7 +77,6 @@ def sign_digitally(mensaje_path, private_key_path, result_path):
 
 
 def get_pkey(path: str):
-    """Función para devolver una pkey conenida en un .pem dado su address"""
     try:
         with open(path, 'rb') as pkey_file:
             private_key = serialization.load_pem_private_key(
@@ -80,4 +111,4 @@ def get_message(path: str):
 
 
 # Ejecutamos el main
-main()
+main()"""

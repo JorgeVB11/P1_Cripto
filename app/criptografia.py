@@ -1,10 +1,12 @@
 import os
 import time
+from datetime import datetime
 import argon2
 import base64
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography import x509
+from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.hazmat.primitives import hashes
 from cryptography.x509.oid import NameOID
 from OpenSSL import crypto
@@ -24,36 +26,52 @@ class Criptografia:
         self._ca_cert = FileManager.get_certificate(f"../Certificados/AC2/ac2cert.pem")
 
     def verify_certificate(self, usuario):
-        
+        """Función para verificar que un certificado es correcto"""
         # Abrimos el certificado
         cert_user = FileManager.get_certificate(f"../Certificados/Usuarios/{usuario}-cert.pem")
         if not cert_user:
             return -1
         # Comprobamos que somos nosotros los que han emitido este certificado
-        if cert_user.get_issuer() != self._ca_cert.get_subject():
-            print("El certificado no ha sido emitido por nosotros.\n")
+        ca_pubkey = self._ca_cert.public_key()
+        try:
+            ca_pubkey.verify(
+                cert_user.signature,
+                cert_user.tbs_certificate_bytes,
+                padding.PKCS1v15(),
+                cert_user.signature_hash_algorithm,
+            )
+            print("El certificado fue emitido por esta CA.")
+        except Exception as e:
+            print("La verificación ha fallado:", e)
             return -1
         # Comprobamos que el tiempo actual está dentro de la validez del certificado
-        ahora = time.time()
-        inicio_validez = time.strptime(cert_user.get_notBefore().decode('ascii'), '%Y%m%d%H%M%SZ')
-        fin_validez = time.strptime(cert_user.get_notAfter().decode('ascii'), '%Y%m%d%H%M%SZ')
-        # Convertimos las fechas de inicio y fin de validez en segundos desde la época UNIX
-        inicio_validez_segundos = int(time.mktime(inicio_validez))
-        fin_validez_segundos = int(time.mktime(fin_validez))
-        if inicio_validez_segundos > ahora:
+        ahora = datetime.utcnow()
+        inicio_validez = cert_user.not_valid_before
+        fin_validez = cert_user.not_valid_after
+        if inicio_validez > ahora:
             print("La fecha del certificado es inválida.\n")
             return -1
-        if fin_validez_segundos < ahora:
+        if fin_validez < ahora:
             print("El certificado está caducado.\n")
             return -1
         print("El certificado es válido\n")
         return 0
 
     def verify_sign(self, sign_path, usuario):
+        """Función para verificar una firma con la pubkey del user"""
         user_cert = FileManager.get_certificate(f"../Certificados/Usuarios/{usuario}-cert.pem")
         user_sign = FileManager.get_sign(sign_path)
+        user_pubkey = user_cert.public_key()
         try:
-            crypto.verify(user_cert, user_sign, self._message, "sha256")
+            user_pubkey.verify(
+                user_sign,
+                self._message,
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256()
+            )
             print("La firma es válida.\n")
             return True
         except crypto.Error:

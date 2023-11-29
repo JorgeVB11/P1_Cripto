@@ -38,7 +38,3 @@ while program_open:
             case '6':
                 conseguido = menu.exit_sesion()
         print("\n")
-
-# TODO: -hacer que el json se actualice cada vez que inicies sesion
-#       -hacer que al descargar el json se comprueben todas las etiquetas para ver si hay brecha de seguridad
-#       -meter firma digital y pki/certificao -> para comprobar la identidad del que modifica contraseñas.

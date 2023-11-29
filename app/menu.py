@@ -92,17 +92,18 @@ class Menu:
             # Generamos la clave a partir de la contraseña
             self._key = self._cripto.derive_password(password, salt)
             # Ahora comprobamos la identidad del usuario con su certificado
-            print("Contraseña correcta, ahora necesitamos tu certificado digital.\n")
             if self.check_certificate(usuario) == -1:
                 break
             print("Todo correcto, iniciando sesión...\n")
             self.type = 'principal'
-            for item in self._db.get_account()["data"]: #Comprobamos que las contraseñas no han sido alteradas
+            print("Comprobando si todas tus contraseñas están intactas...\n")
+            for item in self._db.get_account()["data"]:  # Comprobamos que las contraseñas no han sido alteradas
                 ciphertext, tag, nonce = self._db.password_query(item)
                 # ciphertext, tag, nonce = bytes(ciphertext), bytes(tag), bytes(nonce)
                 if isinstance(nonce, bytes):
                     print("tipo byte")
                 self._cripto.desencrypt(self._key, ciphertext.encode(), tag.encode(), nonce.encode())
+            print("Todo correcto.\n")
             return 0
         print("Volviendo al menú anterior...\n")
         return -1
