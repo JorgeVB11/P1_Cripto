@@ -25,7 +25,7 @@ class Criptografia:
         self._message = ""
         self._ca_cert = FileManager.get_certificate(f"../Certificados/AC2/ac2cert.pem")
 
-    def verify_certificate(self, usuario):
+    def verify_certificate(self, usuario: str):
         """Función para verificar que un certificado es correcto"""
         # Abrimos el certificado
         cert_user = FileManager.get_certificate(f"../Certificados/Usuarios/{usuario}-cert.pem")
@@ -57,7 +57,7 @@ class Criptografia:
         print("El certificado es válido\n")
         return 0
 
-    def verify_sign(self, sign_path, usuario):
+    def verify_sign(self, sign_path: str, usuario: str):
         """Función para verificar una firma con la pubkey del user"""
         user_cert = FileManager.get_certificate(f"../Certificados/Usuarios/{usuario}-cert.pem")
         user_sign = FileManager.get_sign(sign_path)
@@ -93,7 +93,7 @@ class Criptografia:
         return FileManager.write_message(path_archivo, self._message)
 
     @staticmethod
-    def generate_certificate(phone_number):
+    def generate_certificate(phone_number: str):
         """Función para generar un certificado"""
         # Guardamos el cwd para volver mas adelante
         original_working_directory = os.getcwd()
@@ -104,7 +104,7 @@ class Criptografia:
 
         print("LOS SIGUIENTES MENSAJES LLEGAN A LA TERMINAL DE LA ENTIDAD CERTIFICADORA 2, EN LA DEL USUARIO NO SE "
               "DEBERÍA VER EN UN CASO REAL.\n")
-        password = input("Introduce la contraseña de la pkey:\n")
+        password = input("Introduce la contraseña de la pkey de la AC2:\n")
 
         # Creamos el certificado y lo guardamos en un .pem
         os.system(f"openssl ca -in ./solicitudes/{phone_number}_csr.pem -notext -config ./openssl_AC2.cnf --passin "
